@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1b4332">
+<title>সিয়াবাহ ইয়াসমিন — একাউন্টিং সিস্টেম</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif}
+body{background:#f4f6f9;color:#333;padding-bottom:82px}
+header{background:#1b4332;color:white;text-align:center;padding:15px;position:sticky;top:0;z-index:100;box-shadow:0 2px 5px #0003}
+header h1{font-size:1.1rem;font-weight:bold}
+.container{padding:12px;max-width:700px;margin:0 auto}
+.nav-bar{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;border-top:1px solid #ddd;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;text-align:center;padding:12px 2px;color:#666;font-size:.78rem;cursor:pointer}
+.nav-item.active{color:#1b4332;font-weight:bold;border-top:3px solid #1b4332;padding-top:9px}
+.tab-content{display:none}.tab-content.active{display:block}
+.card{background:white;border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:0 2px 4px #0000000d}
+.card h2{font-size:1rem;color:#1b4332;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:7px}
+.form-group{margin-bottom:12px}label{display:block;font-size:.85rem;color:#555;margin-bottom:5px;font-weight:600}
+input,select{width:100%;padding:11px;border:1px solid #ccc;border-radius:6px;font-size:16px;background:white;color:#222}
+button{background:#2d6a4f;color:white;padding:12px;border:0;border-radius:6px;font-size:1rem;font-weight:bold;cursor:pointer}
+button:active{background:#1b4332}.primary-btn{width:100%}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-box{background:#e8f5e9;padding:12px 8px;border-radius:8px;text-align:center;overflow-wrap:anywhere}
+.stat-box.cost{background:#ffebee}.stat-box.profit{background:#d4edda}
+.stat-title{font-size:.76rem;color:#555}.stat-value{font-size:1.05rem;font-weight:bold;margin-top:5px;color:#1b4332}
+.stat-box.cost .stat-value{color:#c62828}.stat-box.profit .stat-value{color:#155724}
+.table-wrap{overflow-x:auto;width:100%}table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:8px;min-width:460px}
+th,td{padding:8px;text-align:left;border-bottom:1px solid #eee;white-space:nowrap}th{background:#f8f9fa;color:#444}
+.badge{padding:4px 6px;border-radius:4px;font-size:.72rem;color:white}.badge-delivered{background:#2e7d32}.badge-returned{background:#c62828}.badge-pending{background:#ef6c00}
+.delete-btn{color:#c62828;background:#fff0f0;padding:5px 9px;width:auto;font-size:.8rem}
+.empty{text-align:center;color:#777;padding:14px}.note{font-size:.8rem;color:#666;line-height:1.5;margin-top:8px}
+.actions{display:flex;gap:8px}.actions button{width:auto}
+@media(max-width:360px){.grid-2{gap:7px}.stat-value{font-size:.95rem}.nav-item{font-size:.7rem}}
+</style>
+</head>
+<body>
+<header><h1>সিয়াবাহ ইয়াসমিন — একাউন্টিং সিস্টেম</h1></header>
+<div class="container">
+  <section id="tab-dashboard" class="tab-content active">
+    <div class="card"><h2>📊 বিজনেস ওভারভিউ (ড্যাশবোর্ড)</h2>
+      <div class="grid-2">
+        <div class="stat-box"><div class="stat-title">মোট বিক্রি</div><div class="stat-value" id="dash-total-sales">৳০</div></div>
+        <div class="stat-box cost"><div class="stat-title">মোট খরচ</div><div class="stat-value" id="dash-total-cost">৳০</div></div>
+        <div class="stat-box cost"><div class="stat-title">রিটার্ন চার্জ</div><div class="stat-value" id="dash-total-return">৳০</div></div>
+        <div class="stat-box profit"><div class="stat-title">নিট প্রফিট</div><div class="stat-value" id="dash-net-profit">৳০</div></div>
+      </div>
+    </div>
+    <div class="card"><h2>📈 অতিরিক্ত হিসাব</h2>
+      <div class="grid-2">
+        <div class="stat-box"><div class="stat-title">মোট অর্ডার</div><div class="stat-value" id="dash-total-orders">০ টি</div></div>
+        <div class="stat-box"><div class="stat-title">রিটার্ন হার</div><div class="stat-value" id="dash-return-rate">০.০০%</div></div>
+      </div>
+    </div>
+    <div class="card"><h2>💾 ডেটা সংরক্ষণ</h2><p class="note">অর্ডার ও প্রোডাক্টের তথ্য এই ডিভাইসের স্থানীয় স্টোরেজে থাকে। অ্যাপের ডেটা/স্টোরেজ মুছে ফেললে তথ্য হারাতে পারে। নিয়মিত ব্যাকআপ রাখুন।</p>
+      <div class="actions" style="margin-top:10px"><button onclick="exportBackup()">ব্যাকআপ ডাউনলোড</button><button onclick="document.getElementById('importFile').click()">ব্যাকআপ ফিরিয়ে আনুন</button></div>
+      <input id="importFile" type="file" accept="application/json,.json" style="display:none" onchange="importBackup(event)">
+    </div>
+  </section>
+  <section id="tab-entry" class="tab-content">
+    <div class="card"><h2>➕ নতুন অর্ডার এন্ট্রি</h2>
+      <form id="orderForm">
+        <div class="form-group"><label for="entryDate">তারিখ</label><input type="date" id="entryDate" required></div>
+        <div class="form-group"><label for="entryOrderId">অর্ডার আইডি</label><input type="text" id="entryOrderId" placeholder="যেমন: ORD-102" required></div>
+        <div class="form-group"><label for="entryProduct">প্রোডাক্ট নাম</label><select id="entryProduct" required><option value="">-- প্রোডাক্ট সিলেক্ট করুন --</option></select></div>
+        <div class="grid-2">
+          <div class="form-group"><label for="entrySupplierCost">সাপ্লায়ার খরচ (৳)</label><input type="number" id="entrySupplierCost" min="0" readonly placeholder="০"></div>
+          <div class="form-group"><label for="entryAdCost">এড খরচ (৳)</label><input type="number" id="entryAdCost" min="0" value="0" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label for="entrySalePrice">বিক্রয় মূল্য (৳)</label><input type="number" id="entrySalePrice" min="0" placeholder="১২০০" required></div>
+          <div class="form-group"><label for="entryReturnCharge">রিটার্ন চার্জ (৳)</label><input type="number" id="entryReturnCharge" min="0" value="0" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label for="entryLocation">লোকেশন</label><select id="entryLocation"><option value="Inside Dhaka">Inside Dhaka</option><option value="Outside Dhaka">Outside Dhaka</option></select></div>
+          <div class="form-group"><label for="entryStatus">স্ট্যাটাস</label><select id="entryStatus"><option value="Delivered">Delivered</option><option value="Returned">Returned</option><option value="Pending">Pending</option></select></div>
+        </div>
+        <button class="primary-btn" type="submit">অর্ডার সেভ করুন</button>
+      </form>
+    </div>
+    <div class="card"><h2>📝 অর্ডার ইতিহাস</h2><div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>আইডি</th><th>প্রোডাক্ট</th><th>বিক্রি</th><th>প্রফিট</th><th>স্ট্যাটাস</th><th>একশন</th></tr></thead><tbody id="entryTableBody"></tbody></table></div></div>
+  </section>
+  <section id="tab-master" class="tab-content">
+    <div class="card"><h2>🏷️ নতুন প্রোডাক্ট যুক্ত করুন</h2>
+      <form id="masterForm">
+        <div class="form-group"><label for="mProdName">প্রোডাক্ট নাম</label><input type="text" id="mProdName" placeholder="যেমন: জামদানি শাড়ি" required></div>
+        <div class="form-group"><label for="mSuppCost">সাপ্লায়ার খরচ (৳)</label><input type="number" id="mSuppCost" min="0" placeholder="৬৫০" required></div>
+        <div class="form-group"><label for="mAdCost">আনুমানিক এড খরচ (প্রতি পিস ৳)</label><input type="number" id="mAdCost" min="0" placeholder="১০০" required></div>
+        <button class="primary-btn" type="submit">প্রোডাক্ট সেভ করুন</button>
+      </form>
+    </div>
+    <div class="card"><h2>📋 প্রোডাক্ট লিস্ট</h2><div class="table-wrap"><table><thead><tr><th>প্রোডাক্ট নাম</th><th>সাপ্লায়ার খরচ</th><th>এড খরচ</th><th>একশন</th></tr></thead><tbody id="masterTableBody"></tbody></table></div></div>
+  </section>
+</div>
+<nav class="nav-bar">
+  <div class="nav-item active" onclick="switchTab('tab-dashboard',this)">📊 ড্যাশবোর্ড</div>
+  <div class="nav-item" onclick="switchTab('tab-entry',this)">📝 ডেইলি এন্ট্রি</div>
+  <div class="nav-item" onclick="switchTab('tab-master',this)">🏷️ মাস্টার ডাটা</div>
+</nav>
+<script>
+'use strict';
+const DEFAULT_MASTER = [
+  {name:'সুতি থ্রি-পিস',supplierCost:450,adCost:80},
+  {name:'প্রিমিয়াম কাতুয়া',supplierCost:650,adCost:100},
+  {name:'সিল্ক শাড়ি',supplierCost:850,adCost:120}
+];
+const DEFAULT_ENTRIES = [
+  {date:'2026-10-25',orderId:'ORD-101',product:'সুতি থ্রি-পিস',supplierCost:450,salePrice:1200,location:'Inside Dhaka',status:'Delivered',adCost:80,returnCharge:0,netProfit:670}
+];
+function readStore(key, fallback){try{const value=localStorage.getItem(key);return value===null?fallback:JSON.parse(value)}catch(e){return fallback}}
+let masterData = readStore('sy_master', DEFAULT_MASTER);
+let dailyEntries = readStore('sy_entries', DEFAULT_ENTRIES);
+const $ = id => document.getElementById(id);
+const money = n => '৳' + Number(n||0).toLocaleString('bn-BD',{maximumFractionDigits:2});
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function saveData(){localStorage.setItem('sy_master',JSON.stringify(masterData));localStorage.setItem('sy_entries',JSON.stringify(dailyEntries));renderMasterData();renderEntries();updateDashboard();}
+function switchTab(tabId,el){document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));$(tabId).classList.add('active');el.classList.add('active');}
+function renderMasterData(){
+  $('entryProduct').innerHTML='<option value="">-- প্রোডাক্ট সিলেক্ট করুন --</option>'+masterData.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
+  $('masterTableBody').innerHTML=masterData.length?masterData.map((p,i)=>`<tr><td><b>${esc(p.name)}</b></td><td>${money(p.supplierCost)}</td><td>${money(p.adCost)}</td><td><button class="delete-btn" onclick="deleteMaster(${i})">মুছুন</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">কোনো প্রোডাক্ট নেই</td></tr>';
+}
+function autoFillProductDetails(){const p=masterData.find(x=>x.name===$('entryProduct').value);$('entrySupplierCost').value=p?p.supplierCost:'';$('entryAdCost').value=p?p.adCost:0;}
+$('entryProduct').addEventListener('change',autoFillProductDetails);
+$('masterForm').addEventListener('submit',e=>{e.preventDefault();const name=$('mProdName').value.trim();if(masterData.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert('এই নামে প্রোডাক্ট আগে থেকেই আছে।');return;}masterData.push({name,supplierCost:Number($('mSuppCost').value),adCost:Number($('mAdCost').value)});saveData();e.target.reset();alert('প্রোডাক্ট সেভ হয়েছে।');});
+function deleteMaster(i){if(confirm('প্রোডাক্টটি মুছে ফেলতে চান?')){masterData.splice(i,1);saveData();}}
+$('orderForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ const date=$('entryDate').value,orderId=$('entryOrderId').value.trim(),product=$('entryProduct').value;
+ if(dailyEntries.some(x=>x.orderId.toLowerCase()===orderId.toLowerCase())){alert('এই অর্ডার আইডি আগে ব্যবহার করা হয়েছে।');return;}
+ const supplierCost=Number($('entrySupplierCost').value)||0,adCost=Number($('entryAdCost').value)||0,salePrice=Number($('entrySalePrice').value)||0,returnCharge=Number($('entryReturnCharge').value)||0,location=$('entryLocation').value,status=$('entryStatus').value;
+ let netProfit=status==='Delivered'?salePrice-(supplierCost+adCost+returnCharge):status==='Returned'?-(adCost+returnCharge):0;
+ dailyEntries.unshift({date,orderId,product,supplierCost,salePrice,location,status,adCost,returnCharge,netProfit});saveData();e.target.reset();$('entryDate').value=localDate();$('entryReturnCharge').value=0;$('entryAdCost').value=0;alert('অর্ডার সেভ হয়েছে।');
+});
+function renderEntries(){
+ $('entryTableBody').innerHTML=dailyEntries.length?dailyEntries.map((x,i)=>{const cls=x.status==='Delivered'?'badge-delivered':x.status==='Returned'?'badge-returned':'badge-pending';return `<tr><td>${esc(x.date)}</td><td>${esc(x.orderId)}</td><td>${esc(x.product)}</td><td>${money(x.salePrice)}</td><td style="color:${x.netProfit>=0?'green':'red'};font-weight:bold">${money(x.netProfit)}</td><td><span class="badge ${cls}">${esc(x.status)}</span></td><td><button class="delete-btn" onclick="deleteEntry(${i})">মুছুন</button></td></tr>`}).join(''):'<tr><td colspan="7" class="empty">এখনো কোনো অর্ডার নেই</td></tr>';
+}
+function deleteEntry(i){if(confirm('অর্ডার এন্ট্রিটি মুছে ফেলতে চান?')){dailyEntries.splice(i,1);saveData();}}
+function updateDashboard(){
+ let sales=0,cost=0,returns=0,profit=0,returned=0;
+ dailyEntries.forEach(x=>{if(x.status==='Delivered'){sales+=Number(x.salePrice)||0;cost+=(Number(x.supplierCost)||0)+(Number(x.adCost)||0);}else if(x.status==='Returned'){returned++;returns+=Number(x.returnCharge)||0;cost+=(Number(x.adCost)||0)+(Number(x.returnCharge)||0);}profit+=Number(x.netProfit)||0;});
+ const rate=dailyEntries.length?(returned/dailyEntries.length*100).toFixed(2):'0.00';
+ $('dash-total-sales').textContent=money(sales);$('dash-total-cost').textContent=money(cost);$('dash-total-return').textContent=money(returns);$('dash-net-profit').textContent=money(profit);$('dash-total-orders').textContent=dailyEntries.length.toLocaleString('bn-BD')+' টি';$('dash-return-rate').textContent=Number(rate).toLocaleString('bn-BD',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+}
+function localDate(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function exportBackup(){const data={app:'Siyabah Yasmin Accounting',version:1,exportedAt:new Date().toISOString(),masterData,dailyEntries};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='siyabah-yasmin-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function importBackup(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.masterData)||!Array.isArray(data.dailyEntries))throw new Error('invalid');if(confirm('বর্তমান তথ্যের জায়গায় ব্যাকআপের তথ্য বসবে। চালিয়ে যাবেন?')){masterData=data.masterData;dailyEntries=data.dailyEntries;saveData();alert('ব্যাকআপ ফিরিয়ে আনা হয়েছে।');}}catch(e){alert('ফাইলটি সঠিক ব্যাকআপ JSON নয়।');}event.target.value='';};reader.readAsText(file);}
+$('entryDate').value=localDate();renderMasterData();renderEntries();updateDashboard();
+</script>
+</body>
+</html>
