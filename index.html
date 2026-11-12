@@ -1,410 +1,912 @@
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyD6xlWXJlxFLqCiv1Fkpe_GlkxKaUON9Dk",
-    authDomain: "siyabah-yasmin-accounting.firebaseapp.com",
-    projectId: "siyabah-yasmin-accounting",
-    storageBucket: "siyabah-yasmin-accounting.firebasestorage.app",
-    messagingSenderId: "854396689593",
-    appId: "1:854396689593:web:147c1546b4042897694f68"
-};
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8C2C59">
+    <title>সিয়াবাহ ইয়াসমিন — প্রিমিয়াম ক্যাশফ্লো</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 
-let db = null;
-try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch (e) { console.error(e); }
-
-// State
-let masterData = [];
-let dailyEntries = [];
-let currentDashProduct = "all";
-let historyFilter = "all";
-let productsUnsub = null, entriesUnsub = null;
-
-const $ = id => document.getElementById(id);
-
-// --- LOGIN LOGIC ---
-function loginUser() {
-    const phone = $('loginPhone').value.trim();
-    if (phone.length < 11) return alert("সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন।");
-    localStorage.setItem('sy_phone', phone);
-    $('authOverlay').classList.remove('open');
-    $('appContainer').classList.add('open');
-    $('navBar').style.display = 'flex';
-    startCloud();
-}
-
-window.onload = function() {
-    const savedPhone = localStorage.getItem('sy_phone');
-    if (savedPhone) { $('loginPhone').value = savedPhone; loginUser(); }
-};
-
-// --- TAB SWITCHING ---
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function() {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        document.getElementById(this.dataset.tab).classList.add('active');
-        this.classList.add('active');
-    });
-});
-
-// --- FIRESTORE SYNC ---
-function startCloud() {
-    if (!db) return;
-    
-    if (productsUnsub) productsUnsub();
-    productsUnsub = db.collection('products').onSnapshot(snap => {
-        masterData = snap.docs.map(d => {
-            let data = d.data();
-            data.id = d.id;
-            // পুরনো ডেটার সাথে নতুন ডেটার মিল (Mapping)
-            if (data.costPrice === undefined && data.supplierCost !== undefined) {
-                data.costPrice = data.supplierCost;
-            }
-            if (data.totalAdCost === undefined && data.adCost !== undefined) {
-                data.totalAdCost = data.adCost;
-            }
-            return data;
-        });
-        renderMasterData();
-        updateDashboardView();
-        renderDailyEntryList();
-        renderHistoryList();
-    });
-
-    if (entriesUnsub) entriesUnsub();
-    // আগের কালেকশনের নাম ছিল 'entries', যা এখন ঠিক করা হয়েছে
-    entriesUnsub = db.collection('entries').onSnapshot(snap => {
-        dailyEntries = snap.docs.map(d => {
-            let o = d.data();
-            o.id = d.id;
-            // পুরনো ডেটার সাথে নতুন ডিজাইনের মিল (Mapping)
-            if (!o.custName) o.custName = 'পুরনো কাস্টমার';
-            if (!o.custPhone) o.custPhone = '-';
-            if (o.status === 'Pending') o.status = 'Processing';
-            if (!o.deliveryArea && o.location) {
-                if (o.location === 'Inside Dhaka') o.deliveryArea = 70;
-                else if (o.location === 'Outside Dhaka') o.deliveryArea = 120;
-                else o.deliveryArea = 100;
-            }
-            if (!o.timestamp) o.timestamp = o.date ? new Date(o.date).getTime() : Date.now();
-            return o;
-        }).sort((a, b) => b.timestamp - a.timestamp);
-        
-        updateDashboardView();
-        renderDailyEntryList();
-        renderHistoryList();
-    });
-}
-
-// --- MASTER DATA ---
-$('masterForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const editId = $('editProductId').value;
-    const name = $('mProdName').value.trim();
-    const costPrice = Number($('mCostPrice').value);
-    const totalAdCost = Number($('mTotalAdCost').value);
-
-    if (!editId && masterData.some(p => p.name === name)) return alert("এই প্রোডাক্টটি আগে থেকেই আছে।");
-
-    const productData = { name, costPrice, totalAdCost };
-    if (db) {
-        if (editId) {
-            await db.collection('products').doc(editId).update(productData);
-        } else {
-            await db.collection('products').add(productData);
+        *{box-sizing:border-box;margin:0;padding:0;font-family:'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif}
+        :root{
+            --primary:#8C2C59; /* Deep Rose */
+            --primary-light:#C96B95;
+            --bg-gradient:linear-gradient(135deg, #FDFBF7 0%, #F8EDEB 100%);
+            --card-bg:rgba(255, 255, 255, 0.95);
+            --text-dark:#2D1B24;
+            --text-muted:#7A6B73;
+            --border-color:#EADCD9;
+            --success:#2E7D32;
+            --danger:#C62828;
+            --gold:#D4A373;
+            --shadow:0 8px 24px rgba(140, 44, 89, 0.08);
+            --shadow-hover:0 12px 32px rgba(140, 44, 89, 0.15);
         }
-        cancelEditProduct();
-    }
-});
+        
+        body{
+            background:var(--bg-gradient);
+            color:var(--text-dark);
+            padding-bottom:86px;
+            overflow-x:hidden;
+            min-height:100vh;
+        }
+        
+        /* Elegant Header */
+        header{
+            background:var(--card-bg);
+            backdrop-filter:blur(10px);
+            padding:15px 20px;
+            box-shadow:0 4px 20px rgba(0,0,0,0.03);
+            border-bottom:1px solid var(--border-color);
+            position:sticky;
+            top:0;
+            z-index:100;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+        .brand-area{display:flex;align-items:center;gap:12px}
+        .app-logo{width:40px;height:40px;object-fit:cover;border-radius:50%;border:2px solid var(--gold);background:#fff;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+        .brand-area h1{font-size:1.1rem;font-weight:700;color:var(--primary);letter-spacing:0.2px}
+        .settings-btn{background:transparent;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);transition:0.2s;padding:5px;width:auto;box-shadow:none}
+        .settings-btn:hover{color:var(--primary);transform:rotate(30deg)}
+        
+        /* Auth Screen */
+        .auth-overlay{display:none;position:fixed;inset:0;z-index:4000;background:var(--bg-gradient);align-items:center;justify-content:center;padding:20px}
+        .auth-overlay.open{display:flex}
+        .auth-card{background:var(--card-bg);border-radius:24px;padding:40px 25px;width:100%;max-width:400px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border-color)}
+        .auth-card h2{color:var(--primary);margin-bottom:8px;font-size:1.6rem;font-weight:700}
+        .auth-card p{color:var(--text-muted);font-size:0.9rem;margin-bottom:25px}
+        .auth-card input{width:100%;background:#FDFBF7;border:1.5px solid var(--border-color);border-radius:14px;padding:15px;color:var(--text-dark);outline:none;font-size:1rem;margin-bottom:20px;text-align:center;transition:0.3s;font-weight:600}
+        .auth-card input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(140, 44, 89, 0.1)}
+        .auth-card button{width:100%;background:linear-gradient(135deg, var(--primary), var(--primary-light));color:white;border:0;border-radius:14px;padding:15px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(140, 44, 89, 0.2);transition:0.3s}
+        .auth-card button:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+        
+        /* Main Container */
+        .container{max-width:760px;padding:20px 15px 30px;margin:auto;display:none}
+        .container.open{display:block}
+        
+        /* Premium Cards */
+        .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:0.3s}
+        .card h2{font-size:1.05rem;color:var(--primary);margin-bottom:18px;border-bottom:1.5px dashed var(--border-color);padding-bottom:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+        .form-group{margin-bottom:15px}
+        label{display:block;color:var(--text-muted);font-size:.85rem;margin-bottom:6px;font-weight:600}
+        input,select{width:100%;background:#FDFBF7;border:1.5px solid var(--border-color);border-radius:12px;padding:13px;color:var(--text-dark);outline:none;font-size:.95rem;transition:.3s;font-family:inherit}
+        input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(140, 44, 89, 0.1);background:#fff}
+        input[readonly]{background:#F2EBE9;color:var(--text-muted);cursor:not-allowed}
+        
+        button[type="submit"], .btn-primary{width:100%;background:linear-gradient(135deg, var(--primary), var(--primary-light));color:white;border:0;border-radius:14px;padding:14px;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(140, 44, 89, 0.15);transition:.3s;font-family:inherit}
+        button[type="submit"]:hover, .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}
+        
+        /* Custom Radio */
+        .radio-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+        .radio-item{display:flex;align-items:center;gap:8px;font-size:0.9rem;color:var(--text-dark);cursor:pointer;background:#FDFBF7;padding:10px 14px;border:1.5px solid var(--border-color);border-radius:12px;flex:1;transition:0.2s;font-weight:500}
+        .radio-item:hover{border-color:var(--primary-light)}
+        .radio-item input[type="radio"]{width:auto;accent-color:var(--primary)}
+        
+        /* Grid */
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        
+        /* Dashboard Stats */
+        .stat-box{background:linear-gradient(145deg, #FFFFFF, #FDFBF7);border:1px solid var(--border-color);border-radius:16px;padding:16px 12px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.02);transition:0.3s}
+        .stat-box:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+        .stat-box.cost{background:linear-gradient(145deg, #FFF8F8, #FFF0F0);border-color:#F5D6D6}
+        .stat-box.profit{background:linear-gradient(145deg, #F4FBF6, #E8F5E9);border-color:#D1EBD5}
+        .stat-box.loss{background:linear-gradient(145deg, #FFF5F5, #FFEBEE);border-color:#F5D0D0}
+        .stat-title{font-size:.75rem;color:var(--text-muted);line-height:1.4;font-weight:600}
+        .stat-value{font-size:1.2rem;font-weight:800;margin-top:6px;color:var(--primary);overflow-wrap:anywhere}
+        .stat-box.cost .stat-value{color:#B03A4A}
+        .stat-box.profit .stat-value{color:#2E7D32}
+        .stat-box.loss .stat-value{color:#C62828}
+        
+        /* Tables */
+        .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border-color)}
+        table{border-collapse:collapse;width:100%;font-size:.85rem}
+        th{background:#FCF9F8;color:var(--text-muted);font-weight:700;padding:12px 10px;text-align:left;border-bottom:1px solid var(--border-color)}
+        td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--border-color);color:var(--text-dark);vertical-align:middle}
+        tr:last-child td{border-bottom:0}
+        tbody tr{transition:background 0.2s}
+        tbody tr:hover{background:#FDFBF7}
+        .badge{border-radius:20px;padding:5px 10px;font-size:.7rem;color:white;font-weight:700;white-space:nowrap}
+        .badge-delivered{background:var(--success)}
+        .badge-returned{background:var(--danger)}
+        .badge-processing{background:#E68A00}
+        
+        /* Action Buttons */
+        .action-btn{color:var(--primary)!important;background:#FDFBF7!important;box-shadow:none!important;border-radius:8px!important;padding:6px 10px!important;width:auto!important;border:1px solid var(--border-color)!important;margin-right:4px;font-size:0.8rem!important;transition:0.2s}
+        .action-btn:hover{background:#F2EBE9!important;border-color:var(--primary)!important}
+        .action-btn.delete{color:var(--danger)!important}
+        .action-btn.delete:hover{background:#FFEBEE!important;border-color:var(--danger)!important}
+        
+        /* Search Bar */
+        .search-bar{margin-bottom:18px;position:relative}
+        .search-bar input{padding-left:40px;border-radius:20px;background:#fff}
+        .search-bar:before{content:'🔍';position:absolute;left:14px;top:14px;font-size:1rem;opacity:0.4}
+        
+        /* Filter Buttons */
+        .filter-group{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:5px}
+        .filter-btn{background:#fff;color:var(--text-muted);border:1.5px solid var(--border-color);padding:8px 16px;border-radius:20px;font-size:0.85rem;cursor:pointer;white-space:nowrap;width:auto;box-shadow:none;font-weight:600;transition:0.2s;font-family:inherit}
+        .filter-btn:hover{border-color:var(--primary-light)}
+        .filter-btn.active{background:var(--primary);color:white;border-color:var(--primary);box-shadow:0 4px 12px rgba(140, 44, 89, 0.2)}
+        
+        /* Nav Bar */
+        .nav-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255, 255, 255, 0.95);backdrop-filter:blur(15px);border-top:1px solid var(--border-color);display:flex;justify-content:space-around;z-index:1000;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 20px rgba(0,0,0,0.04)}
+        .nav-item{flex:1;text-align:center;color:var(--text-muted);padding:12px 4px 10px;font-size:.75rem;cursor:pointer;font-weight:600;transition:0.2s}
+        .nav-item.active{color:var(--primary);border-top:3px solid var(--primary);background:linear-gradient(to top, rgba(140, 44, 89, 0.05), transparent);font-weight:800}
+        .tab-content{display:none;animation:fadeIn .3s ease}
+        .tab-content.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        
+        /* Settings Modal */
+        .settings-modal{display:none;position:fixed;inset:0;z-index:5000;background:rgba(45, 27, 36, 0.6);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:20px}
+        .settings-modal.open{display:flex;animation:fadeIn 0.2s ease}
+        .settings-panel{background:var(--card-bg);border-radius:24px;padding:25px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+        .settings-panel h2{color:var(--primary);margin-bottom:20px;font-size:1.2rem;display:flex;align-items:center;gap:8px}
+        .logo-preview-area{text-align:center;margin-bottom:20px}
+        .logo-preview-area img{width:100px;height:100px;object-fit:cover;border-radius:50%;border:3px solid var(--gold);background:#fff;display:none;box-shadow:var(--shadow)}
+        .settings-panel small{display:block;color:var(--text-muted);margin-top:8px;font-size:.75rem}
+        .settings-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+        .settings-buttons button{flex:1;min-width:100px;font-size:.9rem;padding:12px 10px;border-radius:12px;font-weight:700;cursor:pointer;transition:0.2s;font-family:inherit;border:none}
+        .btn-save{background:linear-gradient(135deg, var(--primary), var(--primary-light));color:white;box-shadow:0 6px 20px rgba(140, 44, 89, 0.2)}
+        .btn-cancel{background:#F2EBE9;color:var(--text-dark)}
+        .btn-remove{background:#FFEBEE;color:var(--danger)}
+        .settings-buttons button:hover{transform:translateY(-2px)}
 
-function renderMasterData() {
-    const tbody = $('masterTableBody');
-    const select = $('entryProduct');
-    const dashSelect = $('dashProductSelect');
+        /* Floating Flowers */
+        .floating-flowers{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:90;opacity:0.6}
+        .floating-flowers span{position:absolute;top:-45px;animation:fallingFlower linear infinite;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.05))}
+        .floating-flowers span:nth-child(1){left:8%;font-size:20px;animation-duration:18s;color:#E8A9C2}
+        .floating-flowers span:nth-child(2){left:28%;font-size:14px;animation-duration:24s;animation-delay:4s;color:#D4A373}
+        .floating-flowers span:nth-child(3){left:53%;font-size:24px;animation-duration:20s;animation-delay:7s;color:#C96B95}
+        .floating-flowers span:nth-child(4){left:76%;font-size:16px;animation-duration:26s;animation-delay:2s;color:#E8A9C2}
+        .floating-flowers span:nth-child(5){left:92%;font-size:18px;animation-duration:22s;animation-delay:9s;color:#D4A373}
+        @keyframes fallingFlower{0%{transform:translateY(-50px) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:0.8}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
+        
+        @media(min-width:600px){
+            .container{padding:30px 20px}
+            .card{padding:25px}
+            .grid-2{gap:16px}
+            .nav-item{font-size:.85rem}
+        }
+        @media(max-width:380px){
+            .brand-area h1{font-size:1rem}
+            .container{padding:15px 10px}
+            .card{padding:15px}
+            .stat-value{font-size:1.05rem}
+            .nav-item{font-size:.65rem}
+            .grid-2{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<div class="floating-flowers" aria-hidden="true"><span>✿</span><span>❀</span><span>✧</span><span>❁</span><span>✾</span></div>
+
+<header>
+    <div class="brand-area">
+        <img id="appLogo" class="app-logo" alt="Logo">
+        <h1 id="appTitle">সিয়াবাহ ইয়াসমিন</h1>
+    </div>
+    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+</header>
+
+<!-- Login Overlay -->
+<div id="authOverlay" class="auth-overlay open">
+    <div class="auth-card">
+        <h2>স্বাগতম</h2>
+        <p>অ্যাপে প্রবেশ করতে মোবাইল নম্বর দিন</p>
+        <input type="tel" id="loginPhone" placeholder="01XXXXXXXXX" required>
+        <button onclick="loginUser()">প্রবেশ করুন</button>
+    </div>
+</div>
+
+<main class="container" id="appContainer">
     
-    tbody.innerHTML = '';
-    select.innerHTML = '<option value="">-- সিলেক্ট করো --</option>';
-    dashSelect.innerHTML = '<option value="all">সামগ্রিক হিসাব (All Products)</option>';
+    <!-- ==================== 1. DASHBOARD TAB ==================== -->
+    <div id="tab-dashboard" class="tab-content active">
+        <div class="card">
+            <h2>📊 ড্যাশবোর্ড</h2>
+            <div class="form-group">
+                <label>হিসাব দেখতে প্রোডাক্ট সিলেক্ট করুন</label>
+                <select id="dashProductSelect" onchange="updateDashboardView()">
+                    <option value="all">সামগ্রিক হিসাব (All Products)</option>
+                </select>
+            </div>
+        </div>
 
-    masterData.forEach((p) => {
-        tbody.innerHTML += `<tr>
-            <td><b>${p.name}</b></td><td>৳${p.costPrice}</td><td>৳${p.totalAdCost}</td>
-            <td>
-                <button class="action-btn" onclick="editProduct('${p.id}')">✏️</button>
-                <button class="action-btn" onclick="deleteProduct('${p.id}')">❌</button>
-            </td>
-        </tr>`;
-        select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        dashSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-    });
-    dashSelect.value = currentDashProduct;
-}
+        <div class="card">
+            <h2>📈 মূল হিসাব</h2>
+            <div class="grid-2">
+                <div class="stat-box"><div class="stat-title">মোট অর্ডার</div><div class="stat-value" id="dash-total-orders">0 টি</div></div>
+                <div class="stat-box cost"><div class="stat-title">প্রসেসিং</div><div class="stat-value" id="dash-processing">0 টি</div></div>
+                <div class="stat-box profit"><div class="stat-title">ডেলিভারি</div><div class="stat-value" id="dash-delivered">0 টি</div></div>
+                <div class="stat-box loss"><div class="stat-title">রিটার্ন</div><div class="stat-value" id="dash-returned">0 টি</div></div>
+            </div>
+        </div>
 
-function editProduct(id) {
-    const p = masterData.find(x => x.id === id);
-    if (!p) return;
-    $('editProductId').value = p.id;
-    $('mProdName').value = p.name;
-    $('mCostPrice').value = p.costPrice;
-    $('mTotalAdCost').value = p.totalAdCost;
-    $('masterFormTitle').innerText = '✏️ প্রোডাক্ট এডিট';
-    $('saveProductBtn').innerText = 'আপডেট করুন';
-    $('cancelProductBtn').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+        <div class="card">
+            <h2>💰 লাভ-ক্ষতির হিসাব</h2>
+            <div class="grid-2">
+                <div class="stat-box"><div class="stat-title">মোট বিক্রি (Sales)</div><div class="stat-value" id="dash-sales">৳0</div></div>
+                <div class="stat-box cost"><div class="stat-title">মোট এড কস্ট</div><div class="stat-value" id="dash-adcost">৳0</div></div>
+                <div class="stat-box"><div class="stat-title">গড় এড কস্ট (প্রতি অর্ডার)</div><div class="stat-value" id="dash-avg-adcost">৳0</div></div>
+                <div class="stat-box profit"><div class="stat-title">মোট প্রফিট</div><div class="stat-value" id="dash-profit">৳0</div></div>
+                <div class="stat-box loss"><div class="stat-title">মোট লস</div><div class="stat-value" id="dash-loss">৳0</div></div>
+                <div class="stat-box profit" style="background:#E8F5E9;border-color:#A5D6A7"><div class="stat-title">নিট লাভ (Net)</div><div class="stat-value" style="color:#1B5E20" id="dash-net">৳0</div></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🎯 পারফরম্যান্স রেট</h2>
+            <div class="grid-2">
+                <div class="stat-box"><div class="stat-title">সাকসেস রেট</div><div class="stat-value" id="dash-success-rate">0%</div></div>
+                <div class="stat-box"><div class="stat-title">রিটার্ন রেট</div><div class="stat-value" id="dash-return-rate">0%</div></div>
+            </div>
+        </div>
+    </div>
 
-function cancelEditProduct() {
-    $('editProductId').value = '';
-    $('masterForm').reset();
-    $('masterFormTitle').innerText = '🏷️ নতুন প্রোডাক্ট';
-    $('saveProductBtn').innerText = 'প্রোডাক্ট সেভ করো';
-    $('cancelProductBtn').style.display = 'none';
-}
+    <!-- ==================== 2. DAILY ENTRY TAB ==================== -->
+    <div id="tab-entry" class="tab-content">
+        <div class="card">
+            <h2 id="entryFormTitle">➕ নতুন অর্ডার</h2>
+            <form id="orderForm">
+                <input type="hidden" id="editOrderId">
+                <div class="grid-2">
+                    <div class="form-group"><label>কাস্টমারের নাম</label><input type="text" id="custName" required placeholder="নাম লিখুন"></div>
+                    <div class="form-group"><label>মোবাইল নাম্বার</label><input type="tel" id="custPhone" required placeholder="01XXXXXXXXX"></div>
+                </div>
+                <div class="form-group">
+                    <label>প্রোডাক্ট</label>
+                    <select id="entryProduct" required onchange="autoFillProductDetails()">
+                        <option value="">-- সিলেক্ট করো --</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label>বিক্রয় মূল্য (৳)</label><input type="number" id="salePrice" required placeholder="0"></div>
+                    <div class="form-group"><label>এড কস্ট (৳)</label><input type="number" id="adCost" readonly placeholder="0"></div>
+                </div>
+                <div class="form-group">
+                    <label>ডেলিভারি চার্জ</label>
+                    <select id="deliveryArea">
+                        <option value="70">ঢাকার ভেতরে (৭০৳)</option>
+                        <option value="100">ঢাকার আশেপাশে (১০০৳)</option>
+                        <option value="120">ঢাকার বাহিরে (১২০৳)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>স্ট্যাটাস</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="orderStatus" value="Processing" checked onchange="toggleReturnOptions()"> Processing</label>
+                        <label class="radio-item"><input type="radio" name="orderStatus" value="Delivered" onchange="toggleReturnOptions()"> Delivered</label>
+                        <label class="radio-item"><input type="radio" name="orderStatus" value="Returned" onchange="toggleReturnOptions()"> Returned</label>
+                    </div>
+                </div>
+                <div class="form-group" id="returnPayerDiv" style="display:none;">
+                    <label>রিটার্ন চার্জ কে দিবে?</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="returnPayer" value="customer" checked> কাস্টমার দিবে</label>
+                        <label class="radio-item"><input type="radio" name="returnPayer" value="me"> আমি দিব (লসে যোগ হবে)</label>
+                    </div>
+                </div>
+                <button type="submit" id="saveOrderBtn">অর্ডার সেভ করো</button>
+                <button type="button" id="cancelEditBtn" class="btn-cancel" onclick="cancelEditOrder()" style="display:none;margin-top:10px">বাতিল করুন</button>
+            </form>
+        </div>
 
-async function deleteProduct(id) {
-    if (confirm("প্রোডাক্টটি মুছে ফেলতে চাও? এর আগের অর্ডারগুলো 'Unknown Product' হিসেবে থাকবে।")) {
-        if (db) await db.collection('products').doc(id).delete();
+        <div class="card">
+            <h2>⏳ প্রসেসিং অর্ডার তালিকা</h2>
+            <div class="search-bar">
+                <input type="text" id="dailySearch" placeholder="নাম বা মোবাইল দিয়ে সার্চ করুন..." oninput="renderDailyEntryList()">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>কাস্টমার</th><th>প্রোডাক্ট</th><th>একশন</th></tr></thead>
+                    <tbody id="dailyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 3. ORDER HISTORY TAB ==================== -->
+    <div id="tab-history" class="tab-content">
+        <div class="card">
+            <h2>📜 অর্ডার হিস্ট্রি</h2>
+            <div class="filter-group">
+                <button class="filter-btn active" onclick="setHistoryFilter('all', this)">সব অর্ডার</button>
+                <button class="filter-btn" onclick="setHistoryFilter('Delivered', this)">ডেলিভারি</button>
+                <button class="filter-btn" onclick="setHistoryFilter('Returned', this)">রিটার্ন</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="historySearch" placeholder="নাম বা মোবাইল দিয়ে সার্চ..." oninput="renderHistoryList()">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>কাস্টমার</th><th>প্রোডাক্ট</th><th>বিক্রি</th><th>প্রফিট/লস</th><th>স্ট্যাটাস</th><th>একশন</th></tr></thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 4. MASTER DATA TAB ==================== -->
+    <div id="tab-master" class="tab-content">
+        <div class="card">
+            <h2 id="masterFormTitle">🏷️ নতুন প্রোডাক্ট</h2>
+            <form id="masterForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group"><label>প্রোডাক্ট নাম</label><input type="text" id="mProdName" required placeholder="যেমন: শাড়ি"></div>
+                <div class="form-group"><label>ক্রয়মূল্য (৳)</label><input type="number" id="mCostPrice" required placeholder="0"></div>
+                <div class="form-group"><label>মোট এড খরচ (৳)</label><input type="number" id="mTotalAdCost" required placeholder="0"></div>
+                <button type="submit" id="saveProductBtn">প্রোডাক্ট সেভ করো</button>
+                <button type="button" id="cancelProductBtn" class="btn-cancel" onclick="cancelEditProduct()" style="display:none;margin-top:10px">বাতিল করুন</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>📋 প্রোডাক্ট লিস্ট</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>প্রোডাক্ট</th><th>ক্রয়মূল্য</th><th>এড কস্ট</th><th>একশন</th></tr></thead>
+                    <tbody id="masterTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- Nav Bar -->
+<div class="nav-bar" id="navBar" style="display:none;">
+    <div class="nav-item active" data-tab="tab-dashboard">📊 ড্যাশবোর্ড</div>
+    <div class="nav-item" data-tab="tab-entry">📝 ডেইলি এন্ট্রি</div>
+    <div class="nav-item" data-tab="tab-history">📜 হিস্ট্রি</div>
+    <div class="nav-item" data-tab="tab-master">🏷️ মাস্টার</div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="settings-modal">
+    <div class="settings-panel">
+        <h2>⚙️ অ্যাপ সেটিংস</h2>
+        <div class="logo-preview-area">
+            <img id="logoPreview" alt="Logo Preview">
+        </div>
+        <div class="form-group">
+            <label>প্রতিষ্ঠানের লোগো</label>
+            <input type="file" id="logoUpload" accept="image/*">
+            <small>সর্বোচ্চ ৩০০ পিক্সেল সাইজের ছবি দিন।</small>
+        </div>
+        <div class="form-group">
+            <label>প্রতিষ্ঠান / অ্যাপের নাম</label>
+            <input type="text" id="appNameInput" maxlength="50" placeholder="প্রতিষ্ঠানের নাম">
+        </div>
+        <div class="settings-buttons">
+            <button type="button" class="btn-remove" onclick="removeLogo()">লোগো সরান</button>
+            <button type="button" class="btn-cancel" onclick="closeSettings()">বন্ধ করুন</button>
+            <button type="button" class="btn-save" onclick="saveSettings()">সেভ করুন</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyD6xlWXJlxFLqCiv1Fkpe_GlkxKaUON9Dk",
+        authDomain: "siyabah-yasmin-accounting.firebaseapp.com",
+        projectId: "siyabah-yasmin-accounting",
+        storageBucket: "siyabah-yasmin-accounting.firebasestorage.app",
+        messagingSenderId: "854396689593",
+        appId: "1:854396689593:web:147c1546b4042897694f68"
+    };
+    
+    let db = null;
+    try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch (e) { console.error(e); }
+
+    // State
+    let masterData = [];
+    let dailyEntries = [];
+    let currentDashProduct = "all";
+    let historyFilter = "all";
+    let productsUnsub = null, entriesUnsub = null, settingsUnsub = null;
+    let appSettings = { name: 'সিয়াবাহ ইয়াসমিন', logo: '' };
+    let selectedLogoData = null;
+
+    const $ = id => document.getElementById(id);
+
+    // --- LOGIN LOGIC ---
+    function loginUser() {
+        const phone = $('loginPhone').value.trim();
+        if (phone.length < 11) return alert("সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন।");
+        localStorage.setItem('sy_phone', phone);
+        $('authOverlay').classList.remove('open');
+        $('appContainer').classList.add('open');
+        $('navBar').style.display = 'flex';
+        startCloud();
+        startSettingsListener();
     }
-}
-
-// --- DAILY ENTRY ---
-function autoFillProductDetails() {
-    const p = masterData.find(x => x.id === $('entryProduct').value);
-    if (p) {
-        const totalOrders = dailyEntries.filter(e => e.productId === p.id).length || 1;
-        const avgAdCost = p.totalAdCost / totalOrders;
-        $('adCost').value = avgAdCost.toFixed(0);
-    } else {
-        $('adCost').value = '';
-    }
-}
-
-function toggleReturnOptions() {
-    const status = document.querySelector('input[name="orderStatus"]:checked').value;
-    $('returnPayerDiv').style.display = (status === 'Returned') ? 'block' : 'none';
-}
-
-$('orderForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const editId = $('editOrderId').value;
-    const status = document.querySelector('input[name="orderStatus"]:checked').value;
-    let returnPayer = 'none';
-    if (status === 'Returned') returnPayer = document.querySelector('input[name="returnPayer"]:checked').value;
-
-    const orderData = {
-        custName: $('custName').value.trim(),
-        custPhone: $('custPhone').value.trim(),
-        productId: $('entryProduct').value,
-        salePrice: Number($('salePrice').value),
-        deliveryArea: Number($('deliveryArea').value),
-        status: status,
-        returnPayer: returnPayer,
-        timestamp: editId ? (dailyEntries.find(o => o.id === editId)?.timestamp || Date.now()) : Date.now()
+    
+    window.onload = function() {
+        const savedPhone = localStorage.getItem('sy_phone');
+        if (savedPhone) { $('loginPhone').value = savedPhone; loginUser(); }
     };
 
-    if (db) {
-        if (editId) {
-            await db.collection('entries').doc(editId).update(orderData);
+    // --- TAB SWITCHING ---
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(this.dataset.tab).classList.add('active');
+            this.classList.add('active');
+        });
+    });
+
+    // --- SETTINGS LOGIC ---
+    function openSettings() {
+        $('appNameInput').value = appSettings.name || '';
+        $('logoUpload').value = '';
+        selectedLogoData = null;
+        updateLogoPreview(appSettings.logo);
+        $('settingsModal').classList.add('open');
+    }
+    window.openSettings = openSettings;
+
+    function closeSettings() {
+        $('settingsModal').classList.remove('open');
+    }
+    window.closeSettings = closeSettings;
+
+    function updateLogoPreview(src) {
+        const preview = $('logoPreview');
+        if (src) { preview.src = src; preview.style.display = 'inline-block'; }
+        else { preview.removeAttribute('src'); preview.style.display = 'none'; }
+    }
+
+    $('logoUpload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) return alert('অনুগ্রহ করে একটি ছবি নির্বাচন করুন।');
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const image = new Image();
+            image.onload = function() {
+                const canvas = document.createElement('canvas');
+                const maxSize = 300;
+                let width = image.width, height = image.height;
+
+                if (width > height && width > maxSize) { height = Math.round(height * maxSize / width); width = maxSize; }
+                else if (height > maxSize) { width = Math.round(width * maxSize / height); height = maxSize; }
+
+                canvas.width = width; canvas.height = height;
+                canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+                selectedLogoData = canvas.toDataURL('image/jpeg', 0.65);
+
+                if (selectedLogoData.length > 800000) {
+                    selectedLogoData = null;
+                    alert('ছবিটি অনেক বড়। অনুগ্রহ করে ছোট আকারের ছবি দিন।');
+                    return;
+                }
+                updateLogoPreview(selectedLogoData);
+            };
+            image.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    async function saveSettings() {
+        const name = $('appNameInput').value.trim();
+        if (!name) return alert('প্রতিষ্ঠানের নাম লিখুন।');
+
+        const newSettings = {
+            name,
+            logo: selectedLogoData !== null ? selectedLogoData : (appSettings.logo || ''),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (!db) {
+            appSettings = newSettings;
+            applyAppSettings();
+            alert('লোকালি সেভ হয়েছে (Firebase নেই)।');
+            closeSettings();
+            return;
+        }
+
+        try {
+            await db.collection('settings').doc('app').set(newSettings, { merge: true });
+            alert('সেটিংস সফলভাবে সেভ হয়েছে।');
+            closeSettings();
+        } catch (error) {
+            alert('সেভ হয়নি: ' + error.message);
+        }
+    }
+    window.saveSettings = saveSettings;
+
+    async function removeLogo() {
+        if (!confirm('লোগো সরাতে চান?')) return;
+        selectedLogoData = null;
+        $('logoUpload').value = '';
+        updateLogoPreview('');
+        
+        if (!db) {
+            appSettings.logo = '';
+            applyAppSettings();
+            return;
+        }
+
+        try {
+            await db.collection('settings').doc('app').set({
+                name: appSettings.name,
+                logo: '',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            alert('লোগো সরানো হয়েছে।');
+        } catch (error) {
+            alert('লোগো সরানো যায়নি: ' + error.message);
+        }
+    }
+    window.removeLogo = removeLogo;
+
+    function applyAppSettings() {
+        const title = appSettings.name || 'সিয়াবাহ ইয়াসমিন';
+        $('appTitle').textContent = title;
+        document.title = title + ' — ক্যাশফ্লো';
+        
+        const logo = $('appLogo');
+        if (appSettings.logo) {
+            logo.src = appSettings.logo;
+            logo.style.display = 'block';
         } else {
-            await db.collection('entries').add(orderData); // কালেকশন নাম ঠিক করা হয়েছে
+            logo.removeAttribute('src');
+            logo.style.display = 'none';
         }
-        cancelEditOrder();
-        alert("সেভ হয়েছে!");
     }
-});
 
-function renderDailyEntryList() {
-    const tbody = $('dailyTableBody');
-    const search = $('dailySearch').value.toLowerCase();
-    tbody.innerHTML = '';
-    
-    const processingOrders = dailyEntries.filter(o => o.status === 'Processing');
-    
-    processingOrders.forEach(o => {
-        // পুরনো অর্ডারের ক্ষেত্রে নাম দিয়েও খোঁজা হবে
-        const p = masterData.find(x => x.id === o.productId) || masterData.find(x => x.name === o.product);
-        const pName = p ? p.name : (o.product || 'Unknown Product');
+    function startSettingsListener() {
+        if (!db) return;
+        if (settingsUnsub) settingsUnsub();
+        settingsUnsub = db.collection('settings').doc('app').onSnapshot(snapshot => {
+            if (snapshot.exists) {
+                appSettings = snapshot.data();
+                applyAppSettings();
+            }
+        });
+    }
+
+    // --- FIRESTORE SYNC ---
+    function startCloud() {
+        if (!db) return;
         
-        if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
+        if (productsUnsub) productsUnsub();
+        productsUnsub = db.collection('products').onSnapshot(snap => {
+            masterData = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+            renderMasterData();
+            updateDashboardView();
+            renderDailyEntryList();
+            renderHistoryList();
+        });
 
-        tbody.innerHTML += `<tr>
-            <td>${o.custName}<br><small>${o.custPhone}</small></td>
-            <td>${pName}</td>
-            <td>
-                <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
-                <button class="action-btn" onclick="deleteOrder('${o.id}')">❌</button>
-            </td>
-        </tr>`;
+        if (entriesUnsub) entriesUnsub();
+        entriesUnsub = db.collection('orders').onSnapshot(snap => {
+            dailyEntries = snap.docs.map(d => {
+                let o = d.data();
+                o.id = d.id;
+                if (!o.custName) o.custName = 'অজানা কাস্টমার';
+                if (!o.custPhone) o.custPhone = '-';
+                if (o.status === 'Pending') o.status = 'Processing';
+                if (!o.timestamp) o.timestamp = Date.now();
+                return o;
+            }).sort((a, b) => b.timestamp - a.timestamp);
+            
+            updateDashboardView();
+            renderDailyEntryList();
+            renderHistoryList();
+        });
+    }
+
+    // --- MASTER DATA ---
+    $('masterForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const editId = $('editProductId').value;
+        const name = $('mProdName').value.trim();
+        const costPrice = Number($('mCostPrice').value);
+        const totalAdCost = Number($('mTotalAdCost').value);
+
+        if (!editId && masterData.some(p => p.name === name)) return alert("এই প্রোডাক্টটি আগে থেকেই আছে।");
+
+        const productData = { name, costPrice, totalAdCost };
+        if (db) {
+            if (editId) { await db.collection('products').doc(editId).update(productData); }
+            else { await db.collection('products').add(productData); }
+            cancelEditProduct();
+        }
     });
-    
-    if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">কোনো প্রসেসিং অর্ডার নেই</td></tr>';
-}
 
-function editOrder(id) {
-    const o = dailyEntries.find(x => x.id === id);
-    if (!o) return;
-    $('editOrderId').value = o.id;
-    $('custName').value = o.custName;
-    $('custPhone').value = o.custPhone;
-    $('entryProduct').value = o.productId || '';
-    $('salePrice').value = o.salePrice;
-    $('deliveryArea').value = o.deliveryArea || 70;
-    
-    document.querySelector(`input[name="orderStatus"][value="${o.status}"]`).checked = true;
-    toggleReturnOptions();
-    if (o.status === 'Returned') {
-        document.querySelector(`input[name="returnPayer"][value="${o.returnPayer || 'customer'}"]`).checked = true;
-    }
-    
-    autoFillProductDetails();
-    
-    $('entryFormTitle').innerText = '✏️ অর্ডার এডিট';
-    $('saveOrderBtn').innerText = 'আপডেট করুন';
-    $('cancelEditBtn').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function cancelEditOrder() {
-    $('editOrderId').value = '';
-    $('orderForm').reset();
-    $('returnPayerDiv').style.display = 'none';
-    $('entryFormTitle').innerText = '➕ নতুন অর্ডার';
-    $('saveOrderBtn').innerText = 'অর্ডার সেভ করো';
-    $('cancelEditBtn').style.display = 'none';
-}
-
-async function deleteOrder(id) {
-    if (confirm("অর্ডারটি মুছে ফেলতে চাও?")) {
-        if (db) await db.collection('entries').doc(id).delete(); // কালেকশন নাম ঠিক করা হয়েছে
-    }
-}
-
-// --- ORDER HISTORY ---
-function setHistoryFilter(filter, btn) {
-    historyFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderHistoryList();
-}
-
-function renderHistoryList() {
-    const tbody = $('historyTableBody');
-    const search = $('historySearch').value.toLowerCase();
-    tbody.innerHTML = '';
-    
-    let filtered = dailyEntries;
-    if (historyFilter !== 'all') filtered = filtered.filter(o => o.status === historyFilter);
-
-    filtered.forEach(o => {
-        const p = masterData.find(x => x.id === o.productId) || masterData.find(x => x.name === o.product);
-        const pName = p ? p.name : (o.product || 'Unknown');
-        const costPrice = p ? p.costPrice : 0;
+    function renderMasterData() {
+        const tbody = $('masterTableBody');
+        const select = $('entryProduct');
+        const dashSelect = $('dashProductSelect');
         
-        let avgAdCost = 0;
+        tbody.innerHTML = '';
+        select.innerHTML = '<option value="">-- সিলেক্ট করো --</option>';
+        dashSelect.innerHTML = '<option value="all">সামগ্রিক হিসাব (All Products)</option>';
+
+        masterData.forEach((p) => {
+            tbody.innerHTML += `<tr>
+                <td><b>${p.name}</b></td><td>৳${p.costPrice}</td><td>৳${p.totalAdCost}</td>
+                <td>
+                    <button class="action-btn" onclick="editProduct('${p.id}')">✏️</button>
+                    <button class="action-btn delete" onclick="deleteProduct('${p.id}')">❌</button>
+                </td>
+            </tr>`;
+            select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            dashSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
+        dashSelect.value = currentDashProduct;
+    }
+
+    function editProduct(id) {
+        const p = masterData.find(x => x.id === id);
+        if (!p) return;
+        $('editProductId').value = p.id;
+        $('mProdName').value = p.name;
+        $('mCostPrice').value = p.costPrice;
+        $('mTotalAdCost').value = p.totalAdCost;
+        $('masterFormTitle').innerText = '✏️ প্রোডাক্ট এডিট';
+        $('saveProductBtn').innerText = 'আপডেট করুন';
+        $('cancelProductBtn').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    window.editProduct = editProduct;
+
+    function cancelEditProduct() {
+        $('editProductId').value = '';
+        $('masterForm').reset();
+        $('masterFormTitle').innerText = '🏷️ নতুন প্রোডাক্ট';
+        $('saveProductBtn').innerText = 'প্রোডাক্ট সেভ করো';
+        $('cancelProductBtn').style.display = 'none';
+    }
+    window.cancelEditProduct = cancelEditProduct;
+
+    async function deleteProduct(id) {
+        if (confirm("প্রোডাক্টটি মুছে ফেলতে চাও? এর আগের অর্ডারগুলো 'Unknown Product' হিসেবে থাকবে।")) {
+            if (db) await db.collection('products').doc(id).delete();
+        }
+    }
+    window.deleteProduct = deleteProduct;
+
+    // --- DAILY ENTRY ---
+    function autoFillProductDetails() {
+        const p = masterData.find(x => x.id === $('entryProduct').value);
         if (p) {
-            const allProdOrders = dailyEntries.filter(e => e.productId === p.id || e.product === p.name).length || 1;
-            avgAdCost = p.totalAdCost / allProdOrders;
+            const totalOrders = dailyEntries.filter(e => e.productId === p.id).length || 1;
+            const avgAdCost = p.totalAdCost / totalOrders;
+            $('adCost').value = avgAdCost.toFixed(0);
+        } else {
+            $('adCost').value = '';
         }
-
-        if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
-
-        let profitText = '-';
-        if (o.status === 'Delivered') {
-            const profit = o.salePrice - (costPrice + avgAdCost);
-            profitText = `<span style="color:green;font-weight:bold;">৳${profit.toFixed(0)}</span>`;
-        } else if (o.status === 'Returned') {
-            let loss = avgAdCost;
-            if (o.returnPayer === 'me' || o.returnCharge) {
-                loss += (o.deliveryArea || o.returnCharge || 0);
-            }
-            profitText = `<span style="color:red;font-weight:bold;">-৳${loss.toFixed(0)}</span>`;
-        }
-
-        const badgeClass = o.status === 'Delivered' ? 'badge-delivered' : (o.status === 'Returned' ? 'badge-returned' : 'badge-processing');
-
-        tbody.innerHTML += `<tr>
-            <td>${o.custName}</td>
-            <td>${pName}</td>
-            <td>৳${o.salePrice}</td>
-            <td>${profitText}</td>
-            <td><span class="badge ${badgeClass}">${o.status}</span></td>
-            <td>
-                <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
-                <button class="action-btn" onclick="deleteOrder('${o.id}')">❌</button>
-            </td>
-        </tr>`;
-    });
-    if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">কোনো অর্ডার পাওয়া যায়নি</td></tr>';
-}
-
-// --- DASHBOARD LOGIC ---
-function updateDashboardView() {
-    currentDashProduct = $('dashProductSelect').value;
-    
-    let filteredEntries = dailyEntries;
-    if (currentDashProduct !== 'all') {
-        filteredEntries = dailyEntries.filter(e => e.productId === currentDashProduct);
     }
+    window.autoFillProductDetails = autoFillProductDetails;
 
-    let totalOrders = filteredEntries.length;
-    let processing = 0, delivered = 0, returned = 0;
-    let totalSales = 0, totalAdCost = 0, totalProfit = 0, totalLoss = 0;
+    function toggleReturnOptions() {
+        const status = document.querySelector('input[name="orderStatus"]:checked').value;
+        $('returnPayerDiv').style.display = (status === 'Returned') ? 'block' : 'none';
+    }
+    window.toggleReturnOptions = toggleReturnOptions;
 
-    filteredEntries.forEach(o => {
-        const p = masterData.find(x => x.id === o.productId) || masterData.find(x => x.name === o.product);
-        if (!p) return; 
+    $('orderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const editId = $('editOrderId').value;
+        const status = document.querySelector('input[name="orderStatus"]:checked').value;
+        let returnPayer = 'none';
+        if (status === 'Returned') returnPayer = document.querySelector('input[name="returnPayer"]:checked').value;
 
-        const allProductOrders = dailyEntries.filter(e => e.productId === p.id || e.product === p.name).length || 1;
-        const avgAdCost = p.totalAdCost / allProductOrders;
-        totalAdCost += avgAdCost;
+        const orderData = {
+            custName: $('custName').value.trim(),
+            custPhone: $('custPhone').value.trim(),
+            productId: $('entryProduct').value,
+            salePrice: Number($('salePrice').value),
+            deliveryArea: Number($('deliveryArea').value),
+            status: status,
+            returnPayer: returnPayer,
+            timestamp: editId ? (dailyEntries.find(o => o.id === editId)?.timestamp || Date.now()) : Date.now()
+        };
 
-        if (o.status === 'Processing') processing++;
-        else if (o.status === 'Delivered') {
-            delivered++;
-            totalSales += o.salePrice;
-            totalProfit += (o.salePrice - (p.costPrice + avgAdCost));
-        } 
-        else if (o.status === 'Returned') {
-            returned++;
-            let loss = avgAdCost;
-            if (o.returnPayer === 'me' || o.returnCharge) {
-                loss += (o.deliveryArea || o.returnCharge || 0);
-            }
-            totalLoss += loss;
+        if (db) {
+            if (editId) { await db.collection('orders').doc(editId).update(orderData); }
+            else { await db.collection('orders').add(orderData); }
+            cancelEditOrder();
+            alert("সেভ হয়েছে!");
         }
     });
 
-    const netProfit = totalProfit - totalLoss;
-    const avgAdCostOverall = totalOrders > 0 ? (totalAdCost / totalOrders) : 0;
-    const successRate = totalOrders > 0 ? ((delivered / totalOrders) * 100).toFixed(1) : '0.0';
-    const returnRate = totalOrders > 0 ? ((returned / totalOrders) * 100).toFixed(1) : '0.0';
+    function renderDailyEntryList() {
+        const tbody = $('dailyTableBody');
+        const search = $('dailySearch').value.toLowerCase();
+        tbody.innerHTML = '';
+        
+        const processingOrders = dailyEntries.filter(o => o.status === 'Processing');
+        
+        processingOrders.forEach(o => {
+            const p = masterData.find(x => x.id === o.productId);
+            const pName = p ? p.name : 'Unknown Product';
+            
+            if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
 
-    $('dash-total-orders').innerText = totalOrders + ' টি';
-    $('dash-processing').innerText = processing + ' টি';
-    $('dash-delivered').innerText = delivered + ' টি';
-    $('dash-returned').innerText = returned + ' টি';
-    
-    $('dash-sales').innerText = '৳' + totalSales.toFixed(0);
-    $('dash-adcost').innerText = '৳' + totalAdCost.toFixed(0);
-    $('dash-avg-adcost').innerText = '৳' + avgAdCostOverall.toFixed(0);
-    $('dash-profit').innerText = '৳' + totalProfit.toFixed(0);
-    $('dash-loss').innerText = '৳' + totalLoss.toFixed(0);
-    $('dash-net').innerText = '৳' + netProfit.toFixed(0);
-    
-    $('dash-success-rate').innerText = successRate + '%';
-    $('dash-return-rate').innerText = returnRate + '%';
-}
+            tbody.innerHTML += `<tr>
+                <td>${o.custName}<br><small style="color:var(--text-muted)">${o.custPhone}</small></td>
+                <td>${pName}</td>
+                <td>
+                    <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
+                    <button class="action-btn delete" onclick="deleteOrder('${o.id}')">❌</button>
+                </td>
+            </tr>`;
+        });
+        
+        if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">কোনো প্রসেসিং অর্ডার নেই</td></tr>';
+    }
+    window.renderDailyEntryList = renderDailyEntryList;
 
-// Make functions global
-window.loginUser = loginUser;
-window.autoFillProductDetails = autoFillProductDetails;
-window.toggleReturnOptions = toggleReturnOptions;
-window.editProduct = editProduct;
-window.cancelEditProduct = cancelEditProduct;
-window.deleteProduct = deleteProduct;
-window.editOrder = editOrder;
-window.cancelEditOrder = cancelEditOrder;
-window.deleteOrder = deleteOrder;
-window.updateDashboardView = updateDashboardView;
-window.renderDailyEntryList = renderDailyEntryList;
-window.renderHistoryList = renderHistoryList;
-window.setHistoryFilter = setHistoryFilter;
+    function editOrder(id) {
+        const o = dailyEntries.find(x => x.id === id);
+        if (!o) return;
+        $('editOrderId').value = o.id;
+        $('custName').value = o.custName;
+        $('custPhone').value = o.custPhone;
+        $('entryProduct').value = o.productId;
+        $('salePrice').value = o.salePrice;
+        $('deliveryArea').value = o.deliveryArea;
+        
+        document.querySelector(`input[name="orderStatus"][value="${o.status}"]`).checked = true;
+        toggleReturnOptions();
+        if (o.status === 'Returned') {
+            document.querySelector(`input[name="returnPayer"][value="${o.returnPayer}"]`).checked = true;
+        }
+        
+        autoFillProductDetails();
+        
+        $('entryFormTitle').innerText = '✏️ অর্ডার এডিট';
+        $('saveOrderBtn').innerText = 'আপডেট করুন';
+        $('cancelEditBtn').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    window.editOrder = editOrder;
+
+    function cancelEditOrder() {
+        $('editOrderId').value = '';
+        $('orderForm').reset();
+        $('returnPayerDiv').style.display = 'none';
+        $('entryFormTitle').innerText = '➕ নতুন অর্ডার';
+        $('saveOrderBtn').innerText = 'অর্ডার সেভ করো';
+        $('cancelEditBtn').style.display = 'none';
+    }
+    window.cancelEditOrder = cancelEditOrder;
+
+    async function deleteOrder(id) {
+        if (confirm("অর্ডারটি মুছে ফেলতে চাও?")) {
+            if (db) await db.collection('orders').doc(id).delete();
+        }
+    }
+    window.deleteOrder = deleteOrder;
+
+    // --- ORDER HISTORY ---
+    function setHistoryFilter(filter, btn) {
+        historyFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderHistoryList();
+    }
+    window.setHistoryFilter = setHistoryFilter;
+
+    function renderHistoryList() {
+        const tbody = $('historyTableBody');
+        const search = $('historySearch').value.toLowerCase();
+        tbody.innerHTML = '';
+        
+        let filtered = dailyEntries;
+        if (historyFilter !== 'all') filtered = filtered.filter(o => o.status === historyFilter);
+
+        filtered.forEach(o => {
+            const p = masterData.find(x => x.id === o.productId);
+            const pName = p ? p.name : 'Unknown';
+            const costPrice = p ? p.costPrice : 0;
+            
+            let avgAdCost = 0;
+            if (p) {
+                const allProdOrders = dailyEntries.filter(e => e.productId === p.id).length || 1;
+                avgAdCost = p.totalAdCost / allProdOrders;
+            }
+
+            if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
+
+            let profitText = '-';
+            if (o.status === 'Delivered') {
+                const profit = o.salePrice - (costPrice + avgAdCost);
+                profitText = `<span style="color:var(--success);font-weight:bold;">৳${profit.toFixed(0)}</span>`;
+            } else if (o.status === 'Returned') {
+                let loss = avgAdCost;
+                if (o.returnPayer === 'me') loss += o.deliveryArea;
+                profitText = `<span style="color:var(--danger);font-weight:bold;">-৳${loss.toFixed(0)}</span>`;
+            }
+
+            const badgeClass = o.status === 'Delivered' ? 'badge-delivered' : (o.status === 'Returned' ? 'badge-returned' : 'badge-processing');
+
+            tbody.innerHTML += `<tr>
+                <td>${o.custName}</td>
+                <td>${pName}</td>
+                <td>৳${o.salePrice}</td>
+                <td>${profitText}</td>
+                <td><span class="badge ${badgeClass}">${o.status}</span></td>
+                <td>
+                    <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
+                    <button class="action-btn delete" onclick="deleteOrder('${o.id}')">❌</button>
+                </td>
+            </tr>`;
+        });
+        if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">কোনো অর্ডার পাওয়া যায়নি</td></tr>';
+    }
+    window.renderHistoryList = renderHistoryList;
+
+    // --- DASHBOARD LOGIC ---
+    function updateDashboardView() {
+        currentDashProduct = $('dashProductSelect').value;
+        
+        let filteredEntries = dailyEntries;
+        if (currentDashProduct !== 'all') {
+            filteredEntries = dailyEntries.filter(e => e.productId === currentDashProduct);
+        }
+
+        let totalOrders = filteredEntries.length;
+        let processing = 0, delivered = 0, returned = 0;
+        let totalSales = 0, totalAdCost = 0, totalProfit = 0, totalLoss = 0;
+
+        filteredEntries.forEach(o => {
+            const p = masterData.find(x => x.id === o.productId);
+            if (!p) return; 
+
+            const allProductOrders = dailyEntries.filter(e => e.productId === o.productId).length || 1;
+            const avgAdCost = p.totalAdCost / allProductOrders;
+            totalAdCost += avgAdCost;
+
+            if (o.status === 'Processing') processing++;
+            else if (o.status === 'Delivered') {
+                delivered++;
+                totalSales += o.salePrice;
+                totalProfit += (o.salePrice - (p.costPrice + avgAdCost));
+            } 
+            else if (o.status === 'Returned') {
+                returned++;
+                let loss = avgAdCost;
+                if (o.returnPayer === 'me') loss += o.deliveryArea;
+                totalLoss += loss;
+            }
+        });
+
+        const netProfit = totalProfit - totalLoss;
+        const avgAdCostOverall = totalOrders > 0 ? (totalAdCost / totalOrders) : 0;
+        const successRate = totalOrders > 0 ? ((delivered / totalOrders) * 100).toFixed(1) : '0.0';
+        const returnRate = totalOrders > 0 ? ((returned / totalOrders) * 100).toFixed(1) : '0.0';
+
+        $('dash-total-orders').innerText = totalOrders + ' টি';
+        $('dash-processing').innerText = processing + ' টি';
+        $('dash-delivered').innerText = delivered + ' টি';
+        $('dash-returned').innerText = returned + ' টি';
+        
+        $('dash-sales').innerText = '৳' + totalSales.toFixed(0);
+        $('dash-adcost').innerText = '৳' + totalAdCost.toFixed(0);
+        $('dash-avg-adcost').innerText = '৳' + avgAdCostOverall.toFixed(0);
+        $('dash-profit').innerText = '৳' + totalProfit.toFixed(0);
+        $('dash-loss').innerText = '৳' + totalLoss.toFixed(0);
+        $('dash-net').innerText = '৳' + netProfit.toFixed(0);
+        
+        $('dash-success-rate').innerText = successRate + '%';
+        $('dash-return-rate').innerText = returnRate + '%';
+    }
+    window.updateDashboardView = updateDashboardView;
+
+</script>
+</body>
+</html>
