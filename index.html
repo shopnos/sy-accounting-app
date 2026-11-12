@@ -1,679 +1,410 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#743477">
-    <title>সিয়াবাহ ইয়াসমিন — ক্যাশফ্লো</title>
-    <style>
-        *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
-        :root{--plum:#4b1f62;--plum2:#713b87;--pink:#e84f9a;--pink2:#ff83b9;--rose:#fff0f6;--lilac:#f3eaff;--mint:#dff8ee;--gold:#ffc66d;--ink:#392344;--muted:#806b89;--line:#f1dce9;--paper:#fffafc}
-        body{background:radial-gradient(circle at 10% 5%,#ffe8f3 0,transparent 28%),radial-gradient(circle at 95% 22%,#eee4ff 0,transparent 27%),linear-gradient(150deg,#fff9fc,#f8f2ff 58%,#fff8f0);color:var(--ink);padding-bottom:86px;overflow-x:hidden}
-        
-        /* Header */
-        header{background:linear-gradient(120deg,#3e1758,#743477 55%,#d94f9a);padding:17px 14px;box-shadow:0 8px 25px #63255a2b;border-radius:0 0 26px 26px;position:sticky;top:0;z-index:100;text-align:center;color:white;overflow:hidden}
-        header:before{content:'✿  ❀  ✧  ♡';position:absolute;right:12px;top:8px;color:#ffd5e8;font-size:20px;letter-spacing:8px;opacity:.8}
-        header:after{content:'❀';position:absolute;left:13px;bottom:-17px;font-size:54px;color:#ffb5d6;opacity:.45}
-        .brand-area{display:flex;align-items:center;justify-content:center;gap:10px;position:relative;z-index:2;min-height:45px}
-        .brand-area h1{font-size:1.18rem;letter-spacing:.2px;text-shadow:0 2px 8px #32133d55;overflow-wrap:anywhere}
-        
-        /* Auth Screen */
-        .auth-overlay{display:none;position:fixed;inset:0;z-index:4000;background:radial-gradient(circle at 10% 5%,#ffe8f3 0,transparent 28%),radial-gradient(circle at 95% 22%,#eee4ff 0,transparent 27%),linear-gradient(150deg,#fff9fc,#f8f2ff 58%,#fff8f0);align-items:center;justify-content:center;padding:20px}
-        .auth-overlay.open{display:flex}
-        .auth-card{background:#fffafd;border:1px solid #f2cfe2;border-radius:22px;padding:30px 20px;width:100%;max-width:400px;text-align:center;box-shadow:0 20px 60px #2b123b20}
-        .auth-card h2{color:var(--plum2);margin-bottom:10px;font-size:1.4rem}
-        .auth-card p{color:var(--muted);font-size:0.9rem;margin-bottom:20px}
-        .auth-card input{width:100%;background:#fffafd;border:1px solid #e8cfe1;border-radius:11px;padding:14px;color:var(--ink);outline:none;font-size:1rem;margin-bottom:15px;text-align:center}
-        .auth-card input:focus{border-color:var(--pink);box-shadow:0 0 0 3px #fce1ef}
-        .auth-card button{width:100%;background:linear-gradient(110deg,#e84f9a,#a64fc2);color:white;border:0;border-radius:12px;padding:14px;font-size:1rem;font-weight:bold;cursor:pointer;box-shadow:0 5px 12px #d84d9828}
-        
-        /* Main Container */
-        .container{max-width:760px;padding:14px 13px 24px;margin:auto;display:none}
-        .container.open{display:block}
-        
-        /* Cards & Forms */
-        .card{background:#ffffffed;border:1px solid #f4dce9;border-radius:19px;padding:16px;margin-bottom:15px;box-shadow:0 7px 22px #6d2d7810;position:relative;overflow:hidden}
-        .card:after{content:'✿';position:absolute;right:12px;top:8px;color:#ef9dc4;opacity:.65;font-size:17px;pointer-events:none}
-        .card h2{font-size:1.01rem;color:#642b78;margin-bottom:14px;border-bottom:1px dashed #eed1e3;padding:0 23px 10px 0}
-        .form-group{margin-bottom:12px}
-        label{display:block;color:#684e70;font-size:.87rem;margin-bottom:5px;font-weight:600}
-        input,select{width:100%;background:#fffafd;border:1px solid #e8cfe1;border-radius:11px;padding:12px;color:var(--ink);outline:none;font-size:.95rem;transition:.2s}
-        input:focus,select:focus{border-color:var(--pink);box-shadow:0 0 0 3px #fce1ef}
-        button{width:100%;background:linear-gradient(110deg,#e84f9a,#a64fc2);color:white;border:0;border-radius:12px;padding:12px 14px;font-size:1rem;font-weight:bold;cursor:pointer;box-shadow:0 5px 12px #d84d9828;transition:transform .15s,filter .15s}
-        button:hover{filter:brightness(1.04);transform:translateY(-1px)}
-        button:active{background:var(--plum);transform:scale(.99)}
-        
-        /* Custom Radio */
-        .radio-group{display:flex;flex-wrap:wrap;gap:10px;margin-top:5px}
-        .radio-item{display:flex;align-items:center;gap:5px;font-size:0.9rem;color:var(--ink);cursor:pointer;background:#fffafd;padding:8px 12px;border:1px solid #e8cfe1;border-radius:8px;flex:1}
-        .radio-item input[type="radio"]{width:auto;accent-color:var(--pink)}
-        
-        /* Grid */
-        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-        
-        /* Dashboard Stats */
-        .stat-box{background:linear-gradient(145deg,#fff0f7,#fffafd);border:1px solid #f6d9e8;border-radius:16px;padding:14px 9px;text-align:center;box-shadow:inset 0 1px #fff;margin-bottom:10px}
-        .stat-box.cost{background:linear-gradient(145deg,#f2eaff,#fffafd);border-color:#e6d8f6}
-        .stat-box.profit{background:linear-gradient(145deg,#e1f8ef,#fffafd);border-color:#cceee0}
-        .stat-box.loss{background:linear-gradient(145deg,#ffe8e8,#fffafd);border-color:#f6cccc}
-        .stat-title{font-size:.75rem;color:#826b89;line-height:1.5}
-        .stat-value{font-size:1.13rem;font-weight:bold;margin-top:4px;color:#762d83;overflow-wrap:anywhere}
-        .stat-box.cost .stat-value{color:#bd477a}
-        .stat-box.profit .stat-value{color:#218b70}
-        .stat-box.loss .stat-value{color:#d32f2f}
-        
-        /* Tables */
-        .table-wrap{overflow-x:auto}
-        table{border-collapse:separate;border-spacing:0;width:100%;border-radius:12px;overflow:hidden;color:#503a58;font-size:.8rem;margin-top:10px}
-        th{background:#f8e7f2;color:#6a3675;font-weight:700}
-        th,td{padding:9px 7px;text-align:left;border-bottom:1px solid #f3e4ee}
-        tr:last-child td{border-bottom:0}
-        tbody tr:nth-child(even){background:#fff8fc}
-        .badge{border-radius:999px;padding:5px 8px;font-size:.7rem;color:white;font-weight:600;white-space:nowrap}
-        .badge-delivered{background:#27a47b}
-        .badge-returned{background:#e34e81}
-        .badge-processing{background:#e7a43c}
-        .action-btn{color:#dc3e79!important;background:#fff0f6!important;box-shadow:none!important;border-radius:8px!important;padding:4px 8px!important;width:auto!important;border:1px solid #f4c4d8!important;margin-right:4px;font-size:0.75rem}
-        
-        /* Search Bar */
-        .search-bar{margin-bottom:15px;position:relative}
-        .search-bar input{padding-left:35px;border-radius:20px}
-        .search-bar:before{content:'🔍';position:absolute;left:12px;top:12px;font-size:1rem;opacity:0.5}
-        
-        /* Filter Buttons */
-        .filter-group{display:flex;gap:8px;margin-bottom:15px;overflow-x:auto;padding-bottom:5px}
-        .filter-btn{background:#fffafd;color:var(--muted);border:1px solid #e8cfe1;padding:6px 12px;border-radius:20px;font-size:0.8rem;cursor:pointer;white-space:nowrap;width:auto;box-shadow:none}
-        .filter-btn.active{background:var(--pink);color:white;border-color:var(--pink)}
-        
-        /* Nav Bar */
-        .nav-bar{position:fixed;bottom:0;left:0;right:0;background:#fffafdf5;backdrop-filter:blur(16px);border-top:1px solid #f0d4e5;box-shadow:0 -7px 24px #60225a12;display:flex;justify-content:space-around;z-index:1000;padding-bottom:env(safe-area-inset-bottom)}
-        .nav-item{flex:1;text-align:center;color:#8d7893;padding:10px 2px;font-size:.7rem;cursor:pointer}
-        .nav-item.active{color:#d83e91;border-top:3px solid #e84f9a;background:linear-gradient(#fff0f7,#fffafd);font-weight:800}
-        .tab-content{display:none;animation:fadeIn .25s ease}
-        .tab-content.active{display:block}
-        @keyframes fadeIn{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-        
-        /* Floating Flowers Animation */
-        .floating-flowers{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:90}
-        .floating-flowers span{position:absolute;top:-45px;opacity:.55;animation:fallingFlower linear infinite}
-        .floating-flowers span:nth-child(1){left:8%;font-size:20px;animation-duration:16s}
-        .floating-flowers span:nth-child(2){left:28%;font-size:15px;animation-duration:21s;animation-delay:4s}
-        .floating-flowers span:nth-child(3){left:53%;font-size:22px;animation-duration:18s;animation-delay:7s}
-        .floating-flowers span:nth-child(4){left:76%;font-size:17px;animation-duration:23s;animation-delay:2s}
-        .floating-flowers span:nth-child(5){left:92%;font-size:19px;animation-duration:19s;animation-delay:9s}
-        @keyframes fallingFlower{0%{transform:translateY(-50px) rotate(0deg);opacity:0}10%{opacity:.55}90%{opacity:.45}100%{transform:translateY(110vh) rotate(360deg);opacity:0}}
-        
-        /* Responsive */
-        @media(min-width:600px){.container{padding:20px}.card{padding:20px}.grid-2{gap:14px}.nav-item{font-size:.85rem}}
-        @media(max-width:380px){.brand-area h1{font-size:1rem}.container{padding:10px 9px}.card{padding:12px}.stat-value{font-size:1rem}.nav-item{font-size:.65rem}}
-        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
-    </style>
-</head>
-<body>
+// Firebase Configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyD6xlWXJlxFLqCiv1Fkpe_GlkxKaUON9Dk",
+    authDomain: "siyabah-yasmin-accounting.firebaseapp.com",
+    projectId: "siyabah-yasmin-accounting",
+    storageBucket: "siyabah-yasmin-accounting.firebasestorage.app",
+    messagingSenderId: "854396689593",
+    appId: "1:854396689593:web:147c1546b4042897694f68"
+};
 
-<div class="floating-flowers" aria-hidden="true"><span>🌸</span><span>🌼</span><span>✿</span><span>🌷</span><span>❀</span></div>
+let db = null;
+try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch (e) { console.error(e); }
 
-<header>
-    <div class="brand-area"><h1>সিয়াবাহ ইয়াসমিন — ক্যাশফ্লো</h1></div>
-</header>
+// State
+let masterData = [];
+let dailyEntries = [];
+let currentDashProduct = "all";
+let historyFilter = "all";
+let productsUnsub = null, entriesUnsub = null;
 
-<!-- Login Overlay -->
-<div id="authOverlay" class="auth-overlay open">
-    <div class="auth-card">
-        <h2>🌸 স্বাগতম</h2>
-        <p>অ্যাপে প্রবেশ করতে মোবাইল নম্বর দিন</p>
-        <input type="tel" id="loginPhone" placeholder="01XXXXXXXXX" required>
-        <button onclick="loginUser()">প্রবেশ করুন</button>
-    </div>
-</div>
+const $ = id => document.getElementById(id);
 
-<main class="container" id="appContainer">
-    
-    <!-- ==================== 1. DASHBOARD TAB ==================== -->
-    <div id="tab-dashboard" class="tab-content active">
-        <div class="card">
-            <h2>📊 ড্যাশবোর্ড</h2>
-            <div class="form-group">
-                <label>হিসাব দেখতে প্রোডাক্ট সিলেক্ট করুন</label>
-                <select id="dashProductSelect" onchange="updateDashboardView()">
-                    <option value="all">সামগ্রিক হিসাব (All Products)</option>
-                </select>
-            </div>
-        </div>
+// --- LOGIN LOGIC ---
+function loginUser() {
+    const phone = $('loginPhone').value.trim();
+    if (phone.length < 11) return alert("সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন।");
+    localStorage.setItem('sy_phone', phone);
+    $('authOverlay').classList.remove('open');
+    $('appContainer').classList.add('open');
+    $('navBar').style.display = 'flex';
+    startCloud();
+}
 
-        <div class="card">
-            <h2>📈 মূল হিসাব</h2>
-            <div class="grid-2">
-                <div class="stat-box"><div class="stat-title">মোট অর্ডার</div><div class="stat-value" id="dash-total-orders">0 টি</div></div>
-                <div class="stat-box cost"><div class="stat-title">প্রসেসিং</div><div class="stat-value" id="dash-processing">0 টি</div></div>
-                <div class="stat-box profit"><div class="stat-title">ডেলিভারি</div><div class="stat-value" id="dash-delivered">0 টি</div></div>
-                <div class="stat-box loss"><div class="stat-title">রিটার্ন</div><div class="stat-value" id="dash-returned">0 টি</div></div>
-            </div>
-        </div>
+window.onload = function() {
+    const savedPhone = localStorage.getItem('sy_phone');
+    if (savedPhone) { $('loginPhone').value = savedPhone; loginUser(); }
+};
 
-        <div class="card">
-            <h2>💰 লাভ-ক্ষতির হিসাব</h2>
-            <div class="grid-2">
-                <div class="stat-box"><div class="stat-title">মোট বিক্রি (Sales)</div><div class="stat-value" id="dash-sales">৳0</div></div>
-                <div class="stat-box cost"><div class="stat-title">মোট এড কস্ট</div><div class="stat-value" id="dash-adcost">৳0</div></div>
-                <div class="stat-box cost"><div class="stat-title">গড় এড কস্ট (প্রতি অর্ডার)</div><div class="stat-value" id="dash-avg-adcost">৳0</div></div>
-                <div class="stat-box profit"><div class="stat-title">মোট প্রফিট</div><div class="stat-value" id="dash-profit">৳0</div></div>
-                <div class="stat-box loss"><div class="stat-title">মোট লস</div><div class="stat-value" id="dash-loss">৳0</div></div>
-                <div class="stat-box profit" style="background:#d4edda;border-color:#c3e6cb"><div class="stat-title">নিট লাভ (Net)</div><div class="stat-value" style="color:#155724" id="dash-net">৳0</div></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2>🎯 রেটিং</h2>
-            <div class="grid-2">
-                <div class="stat-box"><div class="stat-title">সাকসেস রেট</div><div class="stat-value" id="dash-success-rate">0%</div></div>
-                <div class="stat-box"><div class="stat-title">রিটার্ন রেট</div><div class="stat-value" id="dash-return-rate">0%</div></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 2. DAILY ENTRY TAB ==================== -->
-    <div id="tab-entry" class="tab-content">
-        <div class="card">
-            <h2 id="entryFormTitle">➕ নতুন অর্ডার</h2>
-            <form id="orderForm">
-                <input type="hidden" id="editOrderId">
-                <div class="grid-2">
-                    <div class="form-group"><label>কাস্টমারের নাম</label><input type="text" id="custName" required></div>
-                    <div class="form-group"><label>মোবাইল নাম্বার</label><input type="tel" id="custPhone" required></div>
-                </div>
-                <div class="form-group">
-                    <label>প্রোডাক্ট</label>
-                    <select id="entryProduct" required onchange="autoFillProductDetails()">
-                        <option value="">-- সিলেক্ট করো --</option>
-                    </select>
-                </div>
-                <div class="grid-2">
-                    <div class="form-group"><label>বিক্রয় মূল্য (৳)</label><input type="number" id="salePrice" required></div>
-                    <div class="form-group"><label>এড কস্ট (৳)</label><input type="number" id="adCost" readonly style="background:#f8e7f2"></div>
-                </div>
-                <div class="form-group">
-                    <label>ডেলিভারি চার্জ</label>
-                    <select id="deliveryArea">
-                        <option value="70">ঢাকার ভেতরে (৭০৳)</option>
-                        <option value="100">ঢাকার আশেপাশে (১০০৳)</option>
-                        <option value="120">ঢাকার বাহিরে (১২০৳)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>স্ট্যাটাস</label>
-                    <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="orderStatus" value="Processing" checked onchange="toggleReturnOptions()"> Processing</label>
-                        <label class="radio-item"><input type="radio" name="orderStatus" value="Delivered" onchange="toggleReturnOptions()"> Delivered</label>
-                        <label class="radio-item"><input type="radio" name="orderStatus" value="Returned" onchange="toggleReturnOptions()"> Returned</label>
-                    </div>
-                </div>
-                <div class="form-group" id="returnPayerDiv" style="display:none;">
-                    <label>রিটার্ন চার্জ কে দিবে?</label>
-                    <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="returnPayer" value="customer" checked> কাস্টমার দিবে</label>
-                        <label class="radio-item"><input type="radio" name="returnPayer" value="me"> আমি দিব (লসে যোগ হবে)</label>
-                    </div>
-                </div>
-                <button type="submit" id="saveOrderBtn">অর্ডার সেভ করো</button>
-                <button type="button" id="cancelEditBtn" onclick="cancelEditOrder()" style="display:none;background:#fff0f6;color:#c43d7b;box-shadow:none;margin-top:8px">বাতিল করুন</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>⏳ প্রসেসিং অর্ডার তালিকা</h2>
-            <div class="search-bar">
-                <input type="text" id="dailySearch" placeholder="নাম বা মোবাইল দিয়ে সার্চ করুন..." oninput="renderDailyEntryList()">
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>কাস্টমার</th><th>প্রোডাক্ট</th><th>একশন</th></tr></thead>
-                    <tbody id="dailyTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 3. ORDER HISTORY TAB ==================== -->
-    <div id="tab-history" class="tab-content">
-        <div class="card">
-            <h2>📜 অর্ডার হিস্ট্রি</h2>
-            <div class="filter-group">
-                <button class="filter-btn active" onclick="setHistoryFilter('all', this)">সব অর্ডার</button>
-                <button class="filter-btn" onclick="setHistoryFilter('Delivered', this)">ডেলিভারি</button>
-                <button class="filter-btn" onclick="setHistoryFilter('Returned', this)">রিটার্ন</button>
-            </div>
-            <div class="search-bar">
-                <input type="text" id="historySearch" placeholder="নাম বা মোবাইল দিয়ে সার্চ..." oninput="renderHistoryList()">
-            </div>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>কাস্টমার</th><th>প্রোডাক্ট</th><th>বিক্রি</th><th>প্রফিট/লস</th><th>স্ট্যাটাস</th><th>একশন</th></tr></thead>
-                    <tbody id="historyTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 4. MASTER DATA TAB ==================== -->
-    <div id="tab-master" class="tab-content">
-        <div class="card">
-            <h2 id="masterFormTitle">🏷️ নতুন প্রোডাক্ট</h2>
-            <form id="masterForm">
-                <input type="hidden" id="editProductId">
-                <div class="form-group"><label>প্রোডাক্ট নাম</label><input type="text" id="mProdName" required></div>
-                <div class="form-group"><label>ক্রয়মূল্য (৳)</label><input type="number" id="mCostPrice" required></div>
-                <div class="form-group"><label>মোট এড খরচ (৳)</label><input type="number" id="mTotalAdCost" required></div>
-                <button type="submit" id="saveProductBtn">প্রোডাক্ট সেভ করো</button>
-                <button type="button" id="cancelProductBtn" onclick="cancelEditProduct()" style="display:none;background:#fff0f6;color:#c43d7b;box-shadow:none;margin-top:8px">বাতিল করুন</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>📋 প্রোডাক্ট লিস্ট</h2>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>প্রোডাক্ট</th><th>ক্রয়মূল্য</th><th>এড কস্ট</th><th>একশন</th></tr></thead>
-                    <tbody id="masterTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</main>
-
-<!-- Nav Bar -->
-<div class="nav-bar" id="navBar" style="display:none;">
-    <div class="nav-item active" data-tab="tab-dashboard">📊 ড্যাশবোর্ড</div>
-    <div class="nav-item" data-tab="tab-entry">📝 ডেইলি এন্ট্রি</div>
-    <div class="nav-item" data-tab="tab-history">📜 হিস্ট্রি</div>
-    <div class="nav-item" data-tab="tab-master">🏷️ মাস্টার</div>
-</div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<script>
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyD6xlWXJlxFLqCiv1Fkpe_GlkxKaUON9Dk",
-        authDomain: "siyabah-yasmin-accounting.firebaseapp.com",
-        projectId: "siyabah-yasmin-accounting",
-        storageBucket: "siyabah-yasmin-accounting.firebasestorage.app",
-        messagingSenderId: "854396689593",
-        appId: "1:854396689593:web:147c1546b4042897694f68"
-    };
-    
-    let db = null;
-    try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); } catch (e) { console.error(e); }
-
-    // State
-    let masterData = [];
-    let dailyEntries = [];
-    let currentDashProduct = "all";
-    let historyFilter = "all";
-    let productsUnsub = null, entriesUnsub = null;
-
-    const $ = id => document.getElementById(id);
-
-    // --- LOGIN LOGIC ---
-    function loginUser() {
-        const phone = $('loginPhone').value.trim();
-        if (phone.length < 11) return alert("সঠিক ১১ সংখ্যার মোবাইল নাম্বার দিন।");
-        localStorage.setItem('sy_phone', phone);
-        $('authOverlay').classList.remove('open');
-        $('appContainer').classList.add('open');
-        $('navBar').style.display = 'flex';
-        startCloud();
-    }
-    
-    window.onload = function() {
-        const savedPhone = localStorage.getItem('sy_phone');
-        if (savedPhone) { $('loginPhone').value = savedPhone; loginUser(); }
-    };
-
-    // --- TAB SWITCHING ---
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', function() {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.getElementById(this.dataset.tab).classList.add('active');
-            this.classList.add('active');
-        });
+// --- TAB SWITCHING ---
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(this.dataset.tab).classList.add('active');
+        this.classList.add('active');
     });
+});
 
-    // --- FIRESTORE SYNC ---
-    function startCloud() {
-        if (!db) return;
-        if (productsUnsub) productsUnsub();
-        productsUnsub = db.collection('products').onSnapshot(snap => {
-            masterData = snap.docs.map(d => ({ ...d.data(), id: d.id }));
-            renderMasterData();
-            updateDashboardView();
-            renderDailyEntryList();
-            renderHistoryList();
-        });
-        if (entriesUnsub) entriesUnsub();
-        entriesUnsub = db.collection('orders').onSnapshot(snap => {
-            dailyEntries = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a, b) => b.timestamp - a.timestamp);
-            updateDashboardView();
-            renderDailyEntryList();
-            renderHistoryList();
-        });
-    }
-
-    // --- MASTER DATA ---
-    $('masterForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const editId = $('editProductId').value;
-        const name = $('mProdName').value.trim();
-        const costPrice = Number($('mCostPrice').value);
-        const totalAdCost = Number($('mTotalAdCost').value);
-
-        if (!editId && masterData.some(p => p.name === name)) return alert("এই প্রোডাক্টটি আগে থেকেই আছে।");
-
-        const productData = { name, costPrice, totalAdCost };
-        if (db) {
-            if (editId) {
-                await db.collection('products').doc(editId).update(productData);
-            } else {
-                await db.collection('products').add(productData);
+// --- FIRESTORE SYNC ---
+function startCloud() {
+    if (!db) return;
+    
+    if (productsUnsub) productsUnsub();
+    productsUnsub = db.collection('products').onSnapshot(snap => {
+        masterData = snap.docs.map(d => {
+            let data = d.data();
+            data.id = d.id;
+            // পুরনো ডেটার সাথে নতুন ডেটার মিল (Mapping)
+            if (data.costPrice === undefined && data.supplierCost !== undefined) {
+                data.costPrice = data.supplierCost;
             }
-            cancelEditProduct();
-        }
-    });
-
-    function renderMasterData() {
-        const tbody = $('masterTableBody');
-        const select = $('entryProduct');
-        const dashSelect = $('dashProductSelect');
-        
-        tbody.innerHTML = '';
-        select.innerHTML = '<option value="">-- সিলেক্ট করো --</option>';
-        dashSelect.innerHTML = '<option value="all">সামগ্রিক হিসাব (All Products)</option>';
-
-        masterData.forEach((p) => {
-            tbody.innerHTML += `<tr>
-                <td><b>${p.name}</b></td><td>৳${p.costPrice}</td><td>৳${p.totalAdCost}</td>
-                <td>
-                    <button class="action-btn" onclick="editProduct('${p.id}')">✏️</button>
-                    <button class="action-btn" onclick="deleteProduct('${p.id}')">❌</button>
-                </td>
-            </tr>`;
-            select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-            dashSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        });
-        dashSelect.value = currentDashProduct;
-    }
-
-    function editProduct(id) {
-        const p = masterData.find(x => x.id === id);
-        if (!p) return;
-        $('editProductId').value = p.id;
-        $('mProdName').value = p.name;
-        $('mCostPrice').value = p.costPrice;
-        $('mTotalAdCost').value = p.totalAdCost;
-        $('masterFormTitle').innerText = '✏️ প্রোডাক্ট এডিট';
-        $('saveProductBtn').innerText = 'আপডেট করুন';
-        $('cancelProductBtn').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelEditProduct() {
-        $('editProductId').value = '';
-        $('masterForm').reset();
-        $('masterFormTitle').innerText = '🏷️ নতুন প্রোডাক্ট';
-        $('saveProductBtn').innerText = 'প্রোডাক্ট সেভ করো';
-        $('cancelProductBtn').style.display = 'none';
-    }
-
-    async function deleteProduct(id) {
-        if (confirm("প্রোডাক্টটি মুছে ফেলতে চাও? এর আগের অর্ডারগুলো 'Unknown Product' হিসেবে থাকবে।")) {
-            if (db) await db.collection('products').doc(id).delete();
-        }
-    }
-
-    // --- DAILY ENTRY ---
-    function autoFillProductDetails() {
-        const p = masterData.find(x => x.id === $('entryProduct').value);
-        if (p) {
-            const totalOrders = dailyEntries.filter(e => e.productId === p.id).length || 1;
-            const avgAdCost = p.totalAdCost / totalOrders;
-            $('adCost').value = avgAdCost.toFixed(0);
-        } else {
-            $('adCost').value = '';
-        }
-    }
-
-    function toggleReturnOptions() {
-        const status = document.querySelector('input[name="orderStatus"]:checked').value;
-        $('returnPayerDiv').style.display = (status === 'Returned') ? 'block' : 'none';
-    }
-
-    $('orderForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const editId = $('editOrderId').value;
-        const status = document.querySelector('input[name="orderStatus"]:checked').value;
-        let returnPayer = 'none';
-        if (status === 'Returned') returnPayer = document.querySelector('input[name="returnPayer"]:checked').value;
-
-        const orderData = {
-            custName: $('custName').value.trim(),
-            custPhone: $('custPhone').value.trim(),
-            productId: $('entryProduct').value,
-            salePrice: Number($('salePrice').value),
-            deliveryArea: Number($('deliveryArea').value),
-            status: status,
-            returnPayer: returnPayer,
-            timestamp: editId ? (dailyEntries.find(o => o.id === editId)?.timestamp || Date.now()) : Date.now()
-        };
-
-        if (db) {
-            if (editId) {
-                await db.collection('orders').doc(editId).update(orderData);
-            } else {
-                await db.collection('orders').add(orderData);
+            if (data.totalAdCost === undefined && data.adCost !== undefined) {
+                data.totalAdCost = data.adCost;
             }
-            cancelEditOrder();
-            alert("সেভ হয়েছে!");
-        }
-    });
-
-    function renderDailyEntryList() {
-        const tbody = $('dailyTableBody');
-        const search = $('dailySearch').value.toLowerCase();
-        tbody.innerHTML = '';
-        
-        const processingOrders = dailyEntries.filter(o => o.status === 'Processing');
-        
-        processingOrders.forEach(o => {
-            const p = masterData.find(x => x.id === o.productId);
-            const pName = p ? p.name : 'Unknown Product';
-            
-            if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
-
-            tbody.innerHTML += `<tr>
-                <td>${o.custName}<br><small>${o.custPhone}</small></td>
-                <td>${pName}</td>
-                <td>
-                    <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
-                    <button class="action-btn" onclick="deleteOrder('${o.id}')">❌</button>
-                </td>
-            </tr>`;
+            return data;
         });
-        
-        if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">কোনো প্রসেসিং অর্ডার নেই</td></tr>';
-    }
-
-    function editOrder(id) {
-        const o = dailyEntries.find(x => x.id === id);
-        if (!o) return;
-        $('editOrderId').value = o.id;
-        $('custName').value = o.custName;
-        $('custPhone').value = o.custPhone;
-        $('entryProduct').value = o.productId;
-        $('salePrice').value = o.salePrice;
-        $('deliveryArea').value = o.deliveryArea;
-        
-        document.querySelector(`input[name="orderStatus"][value="${o.status}"]`).checked = true;
-        toggleReturnOptions();
-        if (o.status === 'Returned') {
-            document.querySelector(`input[name="returnPayer"][value="${o.returnPayer}"]`).checked = true;
-        }
-        
-        autoFillProductDetails(); // Re-calc ad cost just in case
-        
-        $('entryFormTitle').innerText = '✏️ অর্ডার এডিট';
-        $('saveOrderBtn').innerText = 'আপডেট করুন';
-        $('cancelEditBtn').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelEditOrder() {
-        $('editOrderId').value = '';
-        $('orderForm').reset();
-        $('returnPayerDiv').style.display = 'none';
-        $('entryFormTitle').innerText = '➕ নতুন অর্ডার';
-        $('saveOrderBtn').innerText = 'অর্ডার সেভ করো';
-        $('cancelEditBtn').style.display = 'none';
-    }
-
-    async function deleteOrder(id) {
-        if (confirm("অর্ডারটি মুছে ফেলতে চাও?")) {
-            if (db) await db.collection('orders').doc(id).delete();
-        }
-    }
-
-    // --- ORDER HISTORY ---
-    function setHistoryFilter(filter, btn) {
-        historyFilter = filter;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        renderMasterData();
+        updateDashboardView();
+        renderDailyEntryList();
         renderHistoryList();
-    }
+    });
 
-    function renderHistoryList() {
-        const tbody = $('historyTableBody');
-        const search = $('historySearch').value.toLowerCase();
-        tbody.innerHTML = '';
-        
-        let filtered = dailyEntries;
-        if (historyFilter !== 'all') filtered = filtered.filter(o => o.status === historyFilter);
-
-        filtered.forEach(o => {
-            const p = masterData.find(x => x.id === o.productId);
-            const pName = p ? p.name : 'Unknown';
-            const costPrice = p ? p.costPrice : 0;
-            
-            // Calc Ad Cost
-            let avgAdCost = 0;
-            if (p) {
-                const allProdOrders = dailyEntries.filter(e => e.productId === p.id).length || 1;
-                avgAdCost = p.totalAdCost / allProdOrders;
+    if (entriesUnsub) entriesUnsub();
+    // আগের কালেকশনের নাম ছিল 'entries', যা এখন ঠিক করা হয়েছে
+    entriesUnsub = db.collection('entries').onSnapshot(snap => {
+        dailyEntries = snap.docs.map(d => {
+            let o = d.data();
+            o.id = d.id;
+            // পুরনো ডেটার সাথে নতুন ডিজাইনের মিল (Mapping)
+            if (!o.custName) o.custName = 'পুরনো কাস্টমার';
+            if (!o.custPhone) o.custPhone = '-';
+            if (o.status === 'Pending') o.status = 'Processing';
+            if (!o.deliveryArea && o.location) {
+                if (o.location === 'Inside Dhaka') o.deliveryArea = 70;
+                else if (o.location === 'Outside Dhaka') o.deliveryArea = 120;
+                else o.deliveryArea = 100;
             }
-
-            if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
-
-            let profitText = '-';
-            if (o.status === 'Delivered') {
-                const profit = o.salePrice - (costPrice + avgAdCost);
-                profitText = `<span style="color:green;font-weight:bold;">৳${profit.toFixed(0)}</span>`;
-            } else if (o.status === 'Returned') {
-                let loss = avgAdCost;
-                if (o.returnPayer === 'me') loss += o.deliveryArea;
-                profitText = `<span style="color:red;font-weight:bold;">-৳${loss.toFixed(0)}</span>`;
-            }
-
-            const badgeClass = o.status === 'Delivered' ? 'badge-delivered' : (o.status === 'Returned' ? 'badge-returned' : 'badge-processing');
-
-            tbody.innerHTML += `<tr>
-                <td>${o.custName}</td>
-                <td>${pName}</td>
-                <td>৳${o.salePrice}</td>
-                <td>${profitText}</td>
-                <td><span class="badge ${badgeClass}">${o.status}</span></td>
-                <td>
-                    <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
-                    <button class="action-btn" onclick="deleteOrder('${o.id}')">❌</button>
-                </td>
-            </tr>`;
-        });
-        if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">কোনো অর্ডার পাওয়া যায়নি</td></tr>';
-    }
-
-    // --- DASHBOARD LOGIC ---
-    function updateDashboardView() {
-        currentDashProduct = $('dashProductSelect').value;
+            if (!o.timestamp) o.timestamp = o.date ? new Date(o.date).getTime() : Date.now();
+            return o;
+        }).sort((a, b) => b.timestamp - a.timestamp);
         
-        let filteredEntries = dailyEntries;
-        if (currentDashProduct !== 'all') {
-            filteredEntries = dailyEntries.filter(e => e.productId === currentDashProduct);
+        updateDashboardView();
+        renderDailyEntryList();
+        renderHistoryList();
+    });
+}
+
+// --- MASTER DATA ---
+$('masterForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const editId = $('editProductId').value;
+    const name = $('mProdName').value.trim();
+    const costPrice = Number($('mCostPrice').value);
+    const totalAdCost = Number($('mTotalAdCost').value);
+
+    if (!editId && masterData.some(p => p.name === name)) return alert("এই প্রোডাক্টটি আগে থেকেই আছে।");
+
+    const productData = { name, costPrice, totalAdCost };
+    if (db) {
+        if (editId) {
+            await db.collection('products').doc(editId).update(productData);
+        } else {
+            await db.collection('products').add(productData);
         }
+        cancelEditProduct();
+    }
+});
 
-        let totalOrders = filteredEntries.length;
-        let processing = 0, delivered = 0, returned = 0;
-        let totalSales = 0, totalAdCost = 0, totalProfit = 0, totalLoss = 0;
+function renderMasterData() {
+    const tbody = $('masterTableBody');
+    const select = $('entryProduct');
+    const dashSelect = $('dashProductSelect');
+    
+    tbody.innerHTML = '';
+    select.innerHTML = '<option value="">-- সিলেক্ট করো --</option>';
+    dashSelect.innerHTML = '<option value="all">সামগ্রিক হিসাব (All Products)</option>';
 
-        filteredEntries.forEach(o => {
-            const p = masterData.find(x => x.id === o.productId);
-            if (!p) return; 
+    masterData.forEach((p) => {
+        tbody.innerHTML += `<tr>
+            <td><b>${p.name}</b></td><td>৳${p.costPrice}</td><td>৳${p.totalAdCost}</td>
+            <td>
+                <button class="action-btn" onclick="editProduct('${p.id}')">✏️</button>
+                <button class="action-btn" onclick="deleteProduct('${p.id}')">❌</button>
+            </td>
+        </tr>`;
+        select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        dashSelect.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+    });
+    dashSelect.value = currentDashProduct;
+}
 
-            // Avg ad cost per order for this product
-            const allProductOrders = dailyEntries.filter(e => e.productId === o.productId).length || 1;
-            const avgAdCost = p.totalAdCost / allProductOrders;
-            totalAdCost += avgAdCost;
+function editProduct(id) {
+    const p = masterData.find(x => x.id === id);
+    if (!p) return;
+    $('editProductId').value = p.id;
+    $('mProdName').value = p.name;
+    $('mCostPrice').value = p.costPrice;
+    $('mTotalAdCost').value = p.totalAdCost;
+    $('masterFormTitle').innerText = '✏️ প্রোডাক্ট এডিট';
+    $('saveProductBtn').innerText = 'আপডেট করুন';
+    $('cancelProductBtn').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-            if (o.status === 'Processing') processing++;
-            else if (o.status === 'Delivered') {
-                delivered++;
-                totalSales += o.salePrice;
-                totalProfit += (o.salePrice - (p.costPrice + avgAdCost));
-            } 
-            else if (o.status === 'Returned') {
-                returned++;
-                let loss = avgAdCost;
-                if (o.returnPayer === 'me') loss += o.deliveryArea;
-                totalLoss += loss;
-            }
-        });
+function cancelEditProduct() {
+    $('editProductId').value = '';
+    $('masterForm').reset();
+    $('masterFormTitle').innerText = '🏷️ নতুন প্রোডাক্ট';
+    $('saveProductBtn').innerText = 'প্রোডাক্ট সেভ করো';
+    $('cancelProductBtn').style.display = 'none';
+}
 
-        const netProfit = totalProfit - totalLoss;
-        const avgAdCostOverall = totalOrders > 0 ? (totalAdCost / totalOrders) : 0;
-        const successRate = totalOrders > 0 ? ((delivered / totalOrders) * 100).toFixed(1) : '0.0';
-        const returnRate = totalOrders > 0 ? ((returned / totalOrders) * 100).toFixed(1) : '0.0';
+async function deleteProduct(id) {
+    if (confirm("প্রোডাক্টটি মুছে ফেলতে চাও? এর আগের অর্ডারগুলো 'Unknown Product' হিসেবে থাকবে।")) {
+        if (db) await db.collection('products').doc(id).delete();
+    }
+}
 
-        $('dash-total-orders').innerText = totalOrders + ' টি';
-        $('dash-processing').innerText = processing + ' টি';
-        $('dash-delivered').innerText = delivered + ' টি';
-        $('dash-returned').innerText = returned + ' টি';
+// --- DAILY ENTRY ---
+function autoFillProductDetails() {
+    const p = masterData.find(x => x.id === $('entryProduct').value);
+    if (p) {
+        const totalOrders = dailyEntries.filter(e => e.productId === p.id).length || 1;
+        const avgAdCost = p.totalAdCost / totalOrders;
+        $('adCost').value = avgAdCost.toFixed(0);
+    } else {
+        $('adCost').value = '';
+    }
+}
+
+function toggleReturnOptions() {
+    const status = document.querySelector('input[name="orderStatus"]:checked').value;
+    $('returnPayerDiv').style.display = (status === 'Returned') ? 'block' : 'none';
+}
+
+$('orderForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const editId = $('editOrderId').value;
+    const status = document.querySelector('input[name="orderStatus"]:checked').value;
+    let returnPayer = 'none';
+    if (status === 'Returned') returnPayer = document.querySelector('input[name="returnPayer"]:checked').value;
+
+    const orderData = {
+        custName: $('custName').value.trim(),
+        custPhone: $('custPhone').value.trim(),
+        productId: $('entryProduct').value,
+        salePrice: Number($('salePrice').value),
+        deliveryArea: Number($('deliveryArea').value),
+        status: status,
+        returnPayer: returnPayer,
+        timestamp: editId ? (dailyEntries.find(o => o.id === editId)?.timestamp || Date.now()) : Date.now()
+    };
+
+    if (db) {
+        if (editId) {
+            await db.collection('entries').doc(editId).update(orderData);
+        } else {
+            await db.collection('entries').add(orderData); // কালেকশন নাম ঠিক করা হয়েছে
+        }
+        cancelEditOrder();
+        alert("সেভ হয়েছে!");
+    }
+});
+
+function renderDailyEntryList() {
+    const tbody = $('dailyTableBody');
+    const search = $('dailySearch').value.toLowerCase();
+    tbody.innerHTML = '';
+    
+    const processingOrders = dailyEntries.filter(o => o.status === 'Processing');
+    
+    processingOrders.forEach(o => {
+        // পুরনো অর্ডারের ক্ষেত্রে নাম দিয়েও খোঁজা হবে
+        const p = masterData.find(x => x.id === o.productId) || masterData.find(x => x.name === o.product);
+        const pName = p ? p.name : (o.product || 'Unknown Product');
         
-        $('dash-sales').innerText = '৳' + totalSales.toFixed(0);
-        $('dash-adcost').innerText = '৳' + totalAdCost.toFixed(0);
-        $('dash-avg-adcost').innerText = '৳' + avgAdCostOverall.toFixed(0);
-        $('dash-profit').innerText = '৳' + totalProfit.toFixed(0);
-        $('dash-loss').innerText = '৳' + totalLoss.toFixed(0);
-        $('dash-net').innerText = '৳' + netProfit.toFixed(0);
-        
-        $('dash-success-rate').innerText = successRate + '%';
-        $('dash-return-rate').innerText = returnRate + '%';
+        if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
+
+        tbody.innerHTML += `<tr>
+            <td>${o.custName}<br><small>${o.custPhone}</small></td>
+            <td>${pName}</td>
+            <td>
+                <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
+                <button class="action-btn" onclick="deleteOrder('${o.id}')">❌</button>
+            </td>
+        </tr>`;
+    });
+    
+    if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">কোনো প্রসেসিং অর্ডার নেই</td></tr>';
+}
+
+function editOrder(id) {
+    const o = dailyEntries.find(x => x.id === id);
+    if (!o) return;
+    $('editOrderId').value = o.id;
+    $('custName').value = o.custName;
+    $('custPhone').value = o.custPhone;
+    $('entryProduct').value = o.productId || '';
+    $('salePrice').value = o.salePrice;
+    $('deliveryArea').value = o.deliveryArea || 70;
+    
+    document.querySelector(`input[name="orderStatus"][value="${o.status}"]`).checked = true;
+    toggleReturnOptions();
+    if (o.status === 'Returned') {
+        document.querySelector(`input[name="returnPayer"][value="${o.returnPayer || 'customer'}"]`).checked = true;
     }
     
-    // Make functions global
-    window.loginUser = loginUser;
-    window.autoFillProductDetails = autoFillProductDetails;
-    window.toggleReturnOptions = toggleReturnOptions;
-    window.editProduct = editProduct;
-    window.cancelEditProduct = cancelEditProduct;
-    window.deleteProduct = deleteProduct;
-    window.editOrder = editOrder;
-    window.cancelEditOrder = cancelEditOrder;
-    window.deleteOrder = deleteOrder;
-    window.updateDashboardView = updateDashboardView;
-    window.renderDailyEntryList = renderDailyEntryList;
-    window.renderHistoryList = renderHistoryList;
-    window.setHistoryFilter = setHistoryFilter;
+    autoFillProductDetails();
+    
+    $('entryFormTitle').innerText = '✏️ অর্ডার এডিট';
+    $('saveOrderBtn').innerText = 'আপডেট করুন';
+    $('cancelEditBtn').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-</script>
-</body>
-</html>
+function cancelEditOrder() {
+    $('editOrderId').value = '';
+    $('orderForm').reset();
+    $('returnPayerDiv').style.display = 'none';
+    $('entryFormTitle').innerText = '➕ নতুন অর্ডার';
+    $('saveOrderBtn').innerText = 'অর্ডার সেভ করো';
+    $('cancelEditBtn').style.display = 'none';
+}
+
+async function deleteOrder(id) {
+    if (confirm("অর্ডারটি মুছে ফেলতে চাও?")) {
+        if (db) await db.collection('entries').doc(id).delete(); // কালেকশন নাম ঠিক করা হয়েছে
+    }
+}
+
+// --- ORDER HISTORY ---
+function setHistoryFilter(filter, btn) {
+    historyFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHistoryList();
+}
+
+function renderHistoryList() {
+    const tbody = $('historyTableBody');
+    const search = $('historySearch').value.toLowerCase();
+    tbody.innerHTML = '';
+    
+    let filtered = dailyEntries;
+    if (historyFilter !== 'all') filtered = filtered.filter(o => o.status === historyFilter);
+
+    filtered.forEach(o => {
+        const p = masterData.find(x => x.id === o.productId) || masterData.find(x => x.name === o.product);
+        const pName = p ? p.name : (o.product || 'Unknown');
+        const costPrice = p ? p.costPrice : 0;
+        
+        let avgAdCost = 0;
+        if (p) {
+            const allProdOrders = dailyEntries.filter(e => e.productId === p.id || e.product === p.name).length || 1;
+            avgAdCost = p.totalAdCost / allProdOrders;
+        }
+
+        if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
+
+        let profitText = '-';
+        if (o.status === 'Delivered') {
+            const profit = o.salePrice - (costPrice + avgAdCost);
+            profitText = `<span style="color:green;font-weight:bold;">৳${profit.toFixed(0)}</span>`;
+        } else if (o.status === 'Returned') {
+            let loss = avgAdCost;
+            if (o.returnPayer === 'me' || o.returnCharge) {
+                loss += (o.deliveryArea || o.returnCharge || 0);
+            }
+            profitText = `<span style="color:red;font-weight:bold;">-৳${loss.toFixed(0)}</span>`;
+        }
+
+        const badgeClass = o.status === 'Delivered' ? 'badge-delivered' : (o.status === 'Returned' ? 'badge-returned' : 'badge-processing');
+
+        tbody.innerHTML += `<tr>
+            <td>${o.custName}</td>
+            <td>${pName}</td>
+            <td>৳${o.salePrice}</td>
+            <td>${profitText}</td>
+            <td><span class="badge ${badgeClass}">${o.status}</span></td>
+            <td>
+                <button class="action-btn" onclick="editOrder('${o.id}')">✏️</button>
+                <button class="action-btn" onclick="deleteOrder('${o.id}')">❌</button>
+            </td>
+        </tr>`;
+    });
+    if (tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">কোনো অর্ডার পাওয়া যায়নি</td></tr>';
+}
+
+// --- DASHBOARD LOGIC ---
+function updateDashboardView() {
+    currentDashProduct = $('dashProductSelect').value;
+    
+    let filteredEntries = dailyEntries;
+    if (currentDashProduct !== 'all') {
+        filteredEntries = dailyEntries.filter(e => e.productId === currentDashProduct);
+    }
+
+    let totalOrders = filteredEntries.length;
+    let processing = 0, delivered = 0, returned = 0;
+    let totalSales = 0, totalAdCost = 0, totalProfit = 0, totalLoss = 0;
+
+    filteredEntries.forEach(o => {
+        const p = masterData.find(x => x.id === o.productId) || masterData.find(x => x.name === o.product);
+        if (!p) return; 
+
+        const allProductOrders = dailyEntries.filter(e => e.productId === p.id || e.product === p.name).length || 1;
+        const avgAdCost = p.totalAdCost / allProductOrders;
+        totalAdCost += avgAdCost;
+
+        if (o.status === 'Processing') processing++;
+        else if (o.status === 'Delivered') {
+            delivered++;
+            totalSales += o.salePrice;
+            totalProfit += (o.salePrice - (p.costPrice + avgAdCost));
+        } 
+        else if (o.status === 'Returned') {
+            returned++;
+            let loss = avgAdCost;
+            if (o.returnPayer === 'me' || o.returnCharge) {
+                loss += (o.deliveryArea || o.returnCharge || 0);
+            }
+            totalLoss += loss;
+        }
+    });
+
+    const netProfit = totalProfit - totalLoss;
+    const avgAdCostOverall = totalOrders > 0 ? (totalAdCost / totalOrders) : 0;
+    const successRate = totalOrders > 0 ? ((delivered / totalOrders) * 100).toFixed(1) : '0.0';
+    const returnRate = totalOrders > 0 ? ((returned / totalOrders) * 100).toFixed(1) : '0.0';
+
+    $('dash-total-orders').innerText = totalOrders + ' টি';
+    $('dash-processing').innerText = processing + ' টি';
+    $('dash-delivered').innerText = delivered + ' টি';
+    $('dash-returned').innerText = returned + ' টি';
+    
+    $('dash-sales').innerText = '৳' + totalSales.toFixed(0);
+    $('dash-adcost').innerText = '৳' + totalAdCost.toFixed(0);
+    $('dash-avg-adcost').innerText = '৳' + avgAdCostOverall.toFixed(0);
+    $('dash-profit').innerText = '৳' + totalProfit.toFixed(0);
+    $('dash-loss').innerText = '৳' + totalLoss.toFixed(0);
+    $('dash-net').innerText = '৳' + netProfit.toFixed(0);
+    
+    $('dash-success-rate').innerText = successRate + '%';
+    $('dash-return-rate').innerText = returnRate + '%';
+}
+
+// Make functions global
+window.loginUser = loginUser;
+window.autoFillProductDetails = autoFillProductDetails;
+window.toggleReturnOptions = toggleReturnOptions;
+window.editProduct = editProduct;
+window.cancelEditProduct = cancelEditProduct;
+window.deleteProduct = deleteProduct;
+window.editOrder = editOrder;
+window.cancelEditOrder = cancelEditOrder;
+window.deleteOrder = deleteOrder;
+window.updateDashboardView = updateDashboardView;
+window.renderDailyEntryList = renderDailyEntryList;
+window.renderHistoryList = renderHistoryList;
+window.setHistoryFilter = setHistoryFilter;
