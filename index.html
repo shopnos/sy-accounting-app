@@ -12,7 +12,7 @@
         :root{
             --plum:#4b1f62; --plum2:#713b87; --pink:#e84f9a; --pink2:#ff83b9;
             --rose:#fff0f6; --lilac:#f3eaff; --ink:#392344; --muted:#806b89;
-            --line:#f1dce9; --paper:#fffafc; --green:#27a47b; --red:#e34e81; --orange:#e7a43c;
+            --line:#f1dce9; --paper:#fffafc; --green:#27a47b; --red:#e34e81; --orange:#e7a43c; --blue:#3498db;
         }
         
         body{
@@ -85,9 +85,16 @@
         .stat-box.cost{background: linear-gradient(145deg, #f2eaff, #fffafd); border-color: #e6d8f6;}
         .stat-box.profit{background: linear-gradient(145deg, #e1f8ef, #fffafd); border-color: #cceee0;}
         .stat-box.loss{background: linear-gradient(145deg, #ffe8e8, #fffafd); border-color: #f6cccc;}
+        .stat-box.blue{background: linear-gradient(145deg, #e8f4fb, #fffafd); border-color: #cce6f6;}
+        
         .stat-title{font-size: 0.7rem; color: #826b89; font-weight: 600; line-height: 1.2;}
         .stat-value{font-size: 1.05rem; font-weight: 800; margin-top: 4px; color: #762d83;}
-        .stat-box.cost .stat-value{color: #bd477a;} .stat-box.profit .stat-value{color: #218b70;} .stat-box.loss .stat-value{color: #d32f2f;}
+        .stat-sub{font-size: 0.7rem; color: #555; margin-top: 2px; font-weight: 600;}
+        
+        .stat-box.cost .stat-value{color: #bd477a;} 
+        .stat-box.profit .stat-value{color: #218b70;} 
+        .stat-box.loss .stat-value{color: #d32f2f;}
+        .stat-box.blue .stat-value{color: #2980b9;}
         
         /* Tables */
         .table-wrap{overflow-x: auto; border-radius: 12px; border: 1px solid #f4dce9; background: #fff;}
@@ -173,28 +180,49 @@
     <!-- ==================== TAB 1: HOME ==================== -->
     <div id="tab-home" class="tab-content active">
         
-        <!-- Dashboard Compact -->
+        <!-- Dashboard -->
         <div class="card">
             <h2><span class="pulse-icon">📊</span> ড্যাশবোর্ড</h2>
-            <div class="form-group" style="margin-bottom:12px">
+            <div class="form-group" style="margin-bottom:15px">
                 <select id="dashProductSelect" onchange="updateDashboardView()">
                     <option value="all">সামগ্রিক হিসাব (All Products)</option>
                 </select>
                 <span class="helper-text">নির্দিষ্ট প্রোডাক্ট সিলেক্ট করলে শুধু তার হিসাব দেখাবে।</span>
             </div>
-            <div class="grid-3" style="margin-bottom:10px">
-                <div class="stat-box"><div class="stat-title">মোট অর্ডার</div><div class="stat-value" id="dash-total-orders">0</div></div>
-                <div class="stat-box profit"><div class="stat-title">প্রফিট</div><div class="stat-value" id="dash-profit">৳0</div></div>
-                <div class="stat-box loss"><div class="stat-title">লস</div><div class="stat-value" id="dash-loss">৳0</div></div>
+
+            <!-- Block 1: Sales & Profit -->
+            <h3 style="font-size:0.85rem; color:var(--plum); margin-bottom:8px;">🟢 আয় ও মুনাফা</h3>
+            <div class="grid-3" style="margin-bottom:15px">
+                <div class="stat-box"><div class="stat-title">মোট বিক্রি</div><div class="stat-value" id="dash-sales">৳0</div><div class="stat-sub" id="dash-sales-sub">Delivered</div></div>
+                <div class="stat-box profit"><div class="stat-title">নিট লাভ</div><div class="stat-value" id="dash-net">৳0</div></div>
+                <div class="stat-box profit"><div class="stat-title">প্রফিট মার্জিন</div><div class="stat-value" id="dash-margin">0%</div><div class="stat-sub">বিনিয়োগের ওপর</div></div>
             </div>
-            <div class="grid-3">
-                <div class="stat-box cost"><div class="stat-title">গড় এড কস্ট</div><div class="stat-value" id="dash-avg-adcost">৳0</div></div>
+
+            <!-- Block 2: Expenses -->
+            <h3 style="font-size:0.85rem; color:var(--plum); margin-bottom:8px;">🔴 খরচ</h3>
+            <div class="grid-3" style="margin-bottom:15px">
+                <div class="stat-box cost"><div class="stat-title">মোট এড খরচ</div><div class="stat-value" id="dash-total-adcost">৳0</div></div>
+                <div class="stat-box loss"><div class="stat-title">মোট রিটার্ন চার্জ</div><div class="stat-value" id="dash-total-return">৳0</div><div class="stat-sub">আপনি দিয়েছেন</div></div>
+                <div class="stat-box cost"><div class="stat-title">গড় এড কস্ট</div><div class="stat-value" id="dash-avg-adcost">৳0</div><div class="stat-sub">প্রতি অর্ডার</div></div>
+            </div>
+
+            <!-- Block 3: Operations -->
+            <h3 style="font-size:0.85rem; color:var(--plum); margin-bottom:8px;">🔵 অর্ডার স্ট্যাটাস</h3>
+            <div class="grid-3" style="margin-bottom:15px">
+                <div class="stat-box"><div class="stat-title">প্রসেসিং</div><div class="stat-value" id="dash-processing">0</div><div class="stat-sub" id="dash-processing-amt">৳0</div></div>
+                <div class="stat-box profit"><div class="stat-title">ডেলিভারি</div><div class="stat-value" id="dash-delivered">0</div><div class="stat-sub" id="dash-delivered-amt">৳0</div></div>
+                <div class="stat-box loss"><div class="stat-title">রিটার্ন</div><div class="stat-value" id="dash-returned">0</div><div class="stat-sub" id="dash-returned-amt">৳0</div></div>
+            </div>
+
+            <!-- Block 4: Performance -->
+            <h3 style="font-size:0.85rem; color:var(--plum); margin-bottom:8px;">🎯 পারফরম্যান্স</h3>
+            <div class="grid-2">
                 <div class="stat-box"><div class="stat-title">সাকসেস রেট</div><div class="stat-value" id="dash-success-rate">0%</div></div>
-                <div class="stat-box profit" style="background:#d4edda; border-color:#c3e6cb"><div class="stat-title">নিট লাভ</div><div class="stat-value" id="dash-net">৳0</div></div>
+                <div class="stat-box blue"><div class="stat-title">ROAS (এড-এর ওপর)</div><div class="stat-value" id="dash-roas">0.0x</div><div class="stat-sub">১৳ এডে বিক্রি</div></div>
             </div>
         </div>
 
-        <!-- Entry Form Compact -->
+        <!-- Entry Form -->
         <div class="card">
             <h2 id="entryFormTitle"><span class="pulse-icon">➕</span> নতুন অর্ডার</h2>
             <form id="orderForm">
@@ -285,7 +313,7 @@
             </div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>কাস্টমার</th><th>প্রোডাক্ট</th><th>প্রফিট/লস</th><th>স্ট্যাটাস (ক্লিক করুন)</th><th>একশন</th></tr></thead>
+                    <thead><tr><th>কাস্টমার</th><th>প্রোডাক্ট</th><th>প্রফিট/লস</th><th>স্ট্যাটাস (ক্লিক)</th><th>একশন</th></tr></thead>
                     <tbody id="historyTableBody"></tbody>
                 </table>
             </div>
@@ -447,11 +475,8 @@
     // --- QUICK STATUS UPDATE ---
     function openQuickStatusModal(id, currentStatus, currentPayer) {
         $('quickOrderId').value = id;
-        
-        // Set radio
         document.querySelector(`input[name="quickStatus"][value="${currentStatus}"]`).checked = true;
         
-        // Show/hide return payer
         if (currentStatus === 'Returned') {
             $('quickReturnPayerDiv').style.display = 'block';
             if (currentPayer) {
@@ -772,7 +797,6 @@
 
             const badge = o.status === 'Delivered' ? 'badge-delivered' : (o.status === 'Returned' ? 'badge-returned' : 'badge-processing');
             
-            // স্ট্যাটাস ব্যাজটিতে ক্লিক করলে কুইক মডাল ওপেন হবে
             tbody.innerHTML += `<tr>
                 <td>${o.custName}</td><td>${pName}</td><td>${profitText}</td>
                 <td><span class="badge ${badge}" onclick="openQuickStatusModal('${o.id}', '${o.status}', '${o.returnPayer || ''}')" title="স্ট্যাটাস পরিবর্তন করতে ক্লিক করুন">${o.status}</span></td>
@@ -786,39 +810,88 @@
     }
     window.renderHistoryList = renderHistoryList;
 
-    // --- DASHBOARD ---
+    // --- DASHBOARD (NEW CALCULATIONS) ---
     function updateDashboardView() {
         currentDashProduct = $('dashProductSelect').value;
+        
+        // Filter entries
         let filtered = currentDashProduct === 'all' ? dailyEntries : dailyEntries.filter(e => e.productId === currentDashProduct);
 
-        let totalOrders = filtered.length, delivered = 0, returned = 0;
-        let totalSales = 0, totalAdCost = 0, totalProfit = 0, totalLoss = 0;
+        let totalOrders = filtered.length;
+        let processingCount = 0, deliveredCount = 0, returnedCount = 0;
+        let processingAmt = 0, deliveredAmt = 0, returnedAmt = 0;
+        
+        let totalSales = 0; 
+        let totalAdCost = 0; 
+        let totalReturnCostPaid = 0; // Only count if 'me' pays
+        let totalProfit = 0;
+        let totalLoss = 0;
 
         filtered.forEach(o => {
             const p = masterData.find(x => x.id === o.productId); if (!p) return;
-            const avgAdCost = p.totalAdCost / (dailyEntries.filter(e => e.productId === o.productId).length || 1);
+            
+            // Calculate Avg Ad Cost for this specific product
+            const productTotalOrders = dailyEntries.filter(e => e.productId === o.productId).length || 1;
+            const avgAdCost = p.totalAdCost / productTotalOrders;
+            
             totalAdCost += avgAdCost;
 
-            if (o.status === 'Delivered') {
-                delivered++; totalSales += o.salePrice;
+            if (o.status === 'Processing') {
+                processingCount++;
+                processingAmt += o.salePrice;
+            } else if (o.status === 'Delivered') {
+                deliveredCount++;
+                deliveredAmt += o.salePrice;
+                totalSales += o.salePrice;
                 totalProfit += (o.salePrice - (p.costPrice + avgAdCost));
             } else if (o.status === 'Returned') {
-                returned++; let loss = avgAdCost;
-                if (o.returnPayer === 'me') loss += o.deliveryArea;
+                returnedCount++;
+                returnedAmt += o.salePrice;
+                let loss = avgAdCost;
+                if (o.returnPayer === 'me') {
+                    loss += o.deliveryArea;
+                    totalReturnCostPaid += o.deliveryArea;
+                }
                 totalLoss += loss;
             }
         });
 
         const netProfit = totalProfit - totalLoss;
-        const avgAdCostOverall = totalOrders > 0 ? (totalAdCost / totalOrders) : 0;
-        const successRate = totalOrders > 0 ? ((delivered / totalOrders) * 100).toFixed(0) : '0';
+        
+        // 1. Profit Margin: (Net Profit / Total Investment) * 100
+        // Total Investment = Total Ad Cost + Total Return Cost Paid by Me
+        const totalInvestment = totalAdCost + totalReturnCostPaid;
+        const profitMargin = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
+        
+        // 2. ROAS: Total Sales / Total Ad Cost
+        const roas = totalAdCost > 0 ? (totalSales / totalAdCost) : 0;
 
-        $('dash-total-orders').innerText = totalOrders;
-        $('dash-profit').innerText = '৳' + totalProfit.toFixed(0);
-        $('dash-loss').innerText = '৳' + totalLoss.toFixed(0);
-        $('dash-avg-adcost').innerText = '৳' + avgAdCostOverall.toFixed(0);
-        $('dash-success-rate').innerText = successRate + '%';
+        // 3. Success Rate: Delivered / Total Orders
+        const successRate = totalOrders > 0 ? ((deliveredCount / totalOrders) * 100) : 0;
+        
+        // Update UI
+        $('dash-sales').innerText = '৳' + totalSales.toFixed(0);
+        $('dash-sales-sub').innerText = deliveredCount + ' টি ডেলিভারি';
+        
         $('dash-net').innerText = '৳' + netProfit.toFixed(0);
+        
+        $('dash-margin').innerText = profitMargin.toFixed(1) + '%';
+        
+        $('dash-total-adcost').innerText = '৳' + totalAdCost.toFixed(0);
+        $('dash-total-return').innerText = '৳' + totalReturnCostPaid.toFixed(0);
+        $('dash-avg-adcost').innerText = '৳' + (totalOrders > 0 ? (totalAdCost / totalOrders).toFixed(0) : 0);
+        
+        $('dash-processing').innerText = processingCount;
+        $('dash-processing-amt').innerText = '৳' + processingAmt.toFixed(0);
+        
+        $('dash-delivered').innerText = deliveredCount;
+        $('dash-delivered-amt').innerText = '৳' + deliveredAmt.toFixed(0);
+        
+        $('dash-returned').innerText = returnedCount;
+        $('dash-returned-amt').innerText = '৳' + returnedAmt.toFixed(0);
+        
+        $('dash-success-rate').innerText = successRate.toFixed(0) + '%';
+        $('dash-roas').innerText = roas.toFixed(2) + 'x';
     }
     window.updateDashboardView = updateDashboardView;
 </script>
