@@ -16,9 +16,12 @@
         }
         
         body{
-            background: radial-gradient(circle at 10% 5%, #ffe8f3 0, transparent 28%),
-                        radial-gradient(circle at 95% 22%, #eee4ff 0, transparent 27%),
-                        linear-gradient(150deg, #fff9fc, #f8f2ff 58%, #fff8f0);
+            /* ফুলেল ওয়াটারমার্ক ব্যাকগ্রাউন্ড */
+            background-color: #fffafc;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e84f9a' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+            radial-gradient(circle at 10% 5%, #ffe8f3 0, transparent 28%),
+            radial-gradient(circle at 95% 22%, #eee4ff 0, transparent 27%),
+            linear-gradient(150deg, #fff9fc, #f8f2ff 58%, #fff8f0);
             color: var(--ink);
             padding-bottom: 80px;
             overflow-x: hidden;
@@ -36,87 +39,89 @@
             color: white;
         }
         .brand-area{display: flex; align-items: center; gap: 10px;}
-        .app-logo{width: 38px; height: 38px; object-fit: cover; border-radius: 50%; border: 2px solid #ffe0ef; background: white; display: none;}
+        .app-logo{width: 38px; height: 38px; object-fit: cover; border-radius: 50%; border: 2px solid #ffe0ef; background: white; display: none; box-shadow: 0 2px 8px #32133d55;}
         .brand-area h1{font-size: 1.15rem; font-weight: 700; text-shadow: 0 2px 8px #32133d55;}
         .settings-btn{background: #ffffff20; border: 1px solid #ffffff70; color: white; border-radius: 50%; width: 38px; height: 38px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
         .settings-btn:hover{transform: rotate(30deg); background: #ffffff40;}
         
         /* Auth Screen */
         .auth-overlay{position: fixed; inset: 0; z-index: 4000; background: linear-gradient(150deg, #fff9fc, #f8f2ff); display: flex; align-items: center; justify-content: center; padding: 20px;}
-        .auth-card{background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px #60225a15;}
+        .auth-card{background: var(--paper); border: 1.5px solid var(--line); border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 30px #60225a15;}
         .auth-card h2{color: var(--plum); margin-bottom: 8px; font-size: 1.5rem;}
         .auth-card p{color: var(--muted); font-size: 0.9rem; margin-bottom: 20px;}
         .auth-card input{width: 100%; background: #fffafd; border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; color: var(--ink); font-size: 1rem; margin-bottom: 15px; text-align: center; outline: none; transition: 0.2s;}
         .auth-card input:focus{border-color: var(--pink); box-shadow: 0 0 0 3px #fce1ef;}
         .auth-card button{width: 100%; background: linear-gradient(110deg, #e84f9a, #a64fc2); color: white; border: none; border-radius: 12px; padding: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 5px 15px #d84d9830; transition: 0.2s;}
-        .auth-card button:active{transform: scale(0.98);}
         
         /* Main Container */
         .container{max-width: 600px; margin: auto; padding: 15px; display: none;}
         
         /* Cards */
-        .card{background: #ffffffed; border: 1px solid #f4dce9; border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 5px 20px #6d2d7810;}
-        .card h2{font-size: 1rem; color: #642b78; margin-bottom: 12px; border-bottom: 1px dashed #eed1e3; padding-bottom: 8px; display: flex; align-items: center; gap: 6px;}
+        .card{background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px); border: 1.5px solid #f4dce9; border-radius: 20px; padding: 18px; margin-bottom: 15px; box-shadow: 0 8px 25px #b55a921a; position: relative; overflow: hidden;}
+        .card::before{content: '✿'; position: absolute; top: -5px; right: -5px; font-size: 40px; color: #fce1ef; opacity: 0.6; transform: rotate(15deg);}
+        .card h2{font-size: 1rem; color: #642b78; margin-bottom: 15px; border-bottom: 1.5px dashed #eed1e3; padding-bottom: 10px; display: flex; align-items: center; gap: 6px; position: relative; z-index: 1;}
         
-        /* Forms */
-        .form-group{margin-bottom: 10px;}
-        label{display: block; color: #684e70; font-size: 0.8rem; margin-bottom: 4px; font-weight: 600;}
-        input, select{width: 100%; background: #fffafd; border: 1.5px solid #e8cfe1; border-radius: 10px; padding: 10px 12px; color: var(--ink); font-size: 0.9rem; outline: none; transition: 0.2s;}
-        input:focus, select:focus{border-color: var(--pink); box-shadow: 0 0 0 3px #fce1ef;}
+        /* Forms & Helper Text */
+        .form-group{margin-bottom: 12px; position: relative; z-index: 1;}
+        label{display: block; color: #684e70; font-size: 0.85rem; margin-bottom: 4px; font-weight: 600;}
+        input, select{width: 100%; background: #fffafd; border: 1.5px solid #e8cfe1; border-radius: 12px; padding: 10px 12px; color: var(--ink); font-size: 0.9rem; outline: none; transition: 0.2s;}
+        input:focus, select:focus{border-color: var(--pink); box-shadow: 0 0 0 3px #fce1ef; background: #fff;}
         input[readonly]{background: #f3eaff; color: var(--muted); cursor: not-allowed;}
         
-        button[type="submit"], .btn-save{width: 100%; background: linear-gradient(110deg, #e84f9a, #a64fc2); color: white; border: none; border-radius: 10px; padding: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px #d84d9828; transition: 0.2s;}
+        .helper-text{display: block; font-size: 0.7rem; color: #888; margin-top: 4px; margin-left: 2px;}
+        
+        button[type="submit"], .btn-save{width: 100%; background: linear-gradient(110deg, #e84f9a, #a64fc2); color: white; border: none; border-radius: 12px; padding: 12px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: 0 5px 15px #d84d9828; transition: 0.2s; position: relative; z-index: 1;}
         
         /* Custom Radio */
         .radio-group{display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;}
-        .radio-item{display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--ink); background: #fffafd; padding: 6px 10px; border: 1.5px solid #e8cfe1; border-radius: 8px; flex: 1; cursor: pointer; font-weight: 600;}
+        .radio-item{display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--ink); background: #fffafd; padding: 8px 10px; border: 1.5px solid #e8cfe1; border-radius: 10px; flex: 1; cursor: pointer; font-weight: 600;}
         .radio-item input[type="radio"]{accent-color: var(--pink); width: auto;}
         
         /* Compact Grids */
-        .grid-2{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+        .grid-2{display: grid; grid-template-columns: 1fr 1fr; gap: 10px;}
         .grid-3{display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;}
         
         /* Stats */
-        .stat-box{background: linear-gradient(145deg, #fff0f7, #fffafd); border: 1px solid #f6d9e8; border-radius: 12px; padding: 10px 6px; text-align: center;}
+        .stat-box{background: linear-gradient(145deg, #fff0f7, #fffafd); border: 1px solid #f6d9e8; border-radius: 14px; padding: 12px 6px; text-align: center; box-shadow: inset 0 1px #fff;}
         .stat-box.cost{background: linear-gradient(145deg, #f2eaff, #fffafd); border-color: #e6d8f6;}
         .stat-box.profit{background: linear-gradient(145deg, #e1f8ef, #fffafd); border-color: #cceee0;}
         .stat-box.loss{background: linear-gradient(145deg, #ffe8e8, #fffafd); border-color: #f6cccc;}
-        .stat-title{font-size: 0.65rem; color: #826b89; font-weight: 600; line-height: 1.2;}
-        .stat-value{font-size: 1rem; font-weight: 800; margin-top: 4px; color: #762d83;}
+        .stat-title{font-size: 0.7rem; color: #826b89; font-weight: 600; line-height: 1.2;}
+        .stat-value{font-size: 1.05rem; font-weight: 800; margin-top: 4px; color: #762d83;}
         .stat-box.cost .stat-value{color: #bd477a;} .stat-box.profit .stat-value{color: #218b70;} .stat-box.loss .stat-value{color: #d32f2f;}
         
         /* Tables */
-        .table-wrap{overflow-x: auto; border-radius: 10px; border: 1px solid #f4dce9;}
-        table{border-collapse: collapse; width: 100%; font-size: 0.75rem;}
-        th{background: #f8e7f2; color: #6a3675; font-weight: 700; padding: 8px; text-align: left; border-bottom: 1px solid #f4dce9;}
-        td{padding: 8px; text-align: left; border-bottom: 1px solid #f4dce9; vertical-align: middle;}
+        .table-wrap{overflow-x: auto; border-radius: 12px; border: 1px solid #f4dce9; background: #fff;}
+        table{border-collapse: collapse; width: 100%; font-size: 0.8rem;}
+        th{background: #f8e7f2; color: #6a3675; font-weight: 700; padding: 10px 8px; text-align: left; border-bottom: 1px solid #f4dce9;}
+        td{padding: 10px 8px; text-align: left; border-bottom: 1px solid #f4dce9; vertical-align: middle;}
         tr:last-child td{border-bottom: none;}
         .badge{border-radius: 20px; padding: 4px 8px; font-size: 0.65rem; color: white; font-weight: 700; white-space: nowrap;}
         .badge-delivered{background: var(--green);} .badge-returned{background: var(--red);} .badge-processing{background: var(--orange);}
         
         /* Action Buttons */
-        .action-btn{background: #fffafd; border: 1px solid #f4dce9; color: var(--plum); border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; transition: 0.2s;}
+        .action-btn{background: #fffafd; border: 1px solid #f4dce9; color: var(--plum); border-radius: 8px; padding: 5px 8px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; width: auto;}
         .action-btn.delete{color: var(--red); border-color: #f6cccc;}
         
         /* Nav Bar */
-        .nav-bar{position: fixed; bottom: 0; left: 0; right: 0; background: #fffafdf5; backdrop-filter: blur(16px); border-top: 1px solid #f0d4e5; display: flex; justify-content: space-around; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 20px #60225a12;}
-        .nav-item{flex: 1; text-align: center; color: #8d7893; padding: 10px 2px; font-size: 0.75rem; cursor: pointer; font-weight: 600;}
+        .nav-bar{position: fixed; bottom: 0; left: 0; right: 0; background: #fffafdf5; backdrop-filter: blur(16px); border-top: 1.5px solid #f0d4e5; display: flex; justify-content: space-around; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -5px 20px #60225a12;}
+        .nav-item{flex: 1; text-align: center; color: #8d7893; padding: 12px 2px; font-size: 0.75rem; cursor: pointer; font-weight: 600;}
         .nav-item.active{color: var(--pink); border-top: 3px solid var(--pink); background: linear-gradient(#fff0f7, #fffafd); font-weight: 800;}
         .tab-content{display: none; animation: fadeIn 0.25s ease;} .tab-content.active{display: block;}
         
         /* Settings Modal */
         .settings-modal{position: fixed; inset: 0; z-index: 5000; background: rgba(43, 18, 59, 0.6); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; padding: 15px;}
         .settings-modal.open{display: flex;}
-        .settings-panel{background: var(--paper); border-radius: 20px; padding: 20px; width: 100%; max-width: 350px; box-shadow: 0 15px 40px #2b123b50;}
+        .settings-panel{background: var(--paper); border-radius: 20px; padding: 20px; width: 100%; max-width: 350px; box-shadow: 0 15px 40px #2b123b50; border: 1.5px solid var(--line);}
         .settings-panel h2{color: var(--plum); margin-bottom: 15px; font-size: 1.1rem;}
         .logo-preview-area{text-align: center; margin-bottom: 15px;}
-        .logo-preview-area img{width: 80px; height: 80px; border-radius: 50%; border: 3px solid #f3b8d5; object-fit: cover; display: none;}
+        .logo-preview-area img{width: 80px; height: 80px; border-radius: 50%; border: 3px solid #f3b8d5; object-fit: cover; display: none; box-shadow: 0 4px 10px #d84d9820;}
         .settings-buttons{display: flex; gap: 8px; margin-top: 15px;}
-        .settings-buttons button{flex: 1; padding: 10px; font-size: 0.85rem; border-radius: 8px; border: none; font-weight: 700; cursor: pointer;}
+        .settings-buttons button{flex: 1; padding: 10px; font-size: 0.85rem; border-radius: 10px; border: none; font-weight: 700; cursor: pointer;}
         .btn-remove{background: #fff0f6; color: var(--red);} .btn-cancel{background: #f3eaff; color: var(--plum);}
         
         /* Floating Flowers */
-        .floating-flowers{position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 90; opacity: 0.7;}
+        .floating-flowers{position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 90; opacity: 0.6;}
         .floating-flowers span{position: absolute; top: -40px; animation: fallingFlower linear infinite; filter: drop-shadow(0 2px 4px #c44d8b1a);}
         .floating-flowers span:nth-child(1){left: 10%; font-size: 18px; animation-duration: 15s;}
         .floating-flowers span:nth-child(2){left: 35%; font-size: 14px; animation-duration: 20s; animation-delay: 3s;}
@@ -156,20 +161,21 @@
         <!-- Dashboard Compact -->
         <div class="card">
             <h2>📊 ড্যাশবোর্ড</h2>
-            <div class="form-group" style="margin-bottom:10px">
+            <div class="form-group" style="margin-bottom:12px">
                 <select id="dashProductSelect" onchange="updateDashboardView()">
                     <option value="all">সামগ্রিক হিসাব (All Products)</option>
                 </select>
+                <span class="helper-text">নির্দিষ্ট প্রোডাক্ট সিলেক্ট করলে শুধু তার হিসাব দেখাবে।</span>
             </div>
-            <div class="grid-3" style="margin-bottom:8px">
-                <div class="stat-box"><div class="stat-title">অর্ডার</div><div class="stat-value" id="dash-total-orders">0</div></div>
+            <div class="grid-3" style="margin-bottom:10px">
+                <div class="stat-box"><div class="stat-title">মোট অর্ডার</div><div class="stat-value" id="dash-total-orders">0</div></div>
                 <div class="stat-box profit"><div class="stat-title">প্রফিট</div><div class="stat-value" id="dash-profit">৳0</div></div>
                 <div class="stat-box loss"><div class="stat-title">লস</div><div class="stat-value" id="dash-loss">৳0</div></div>
             </div>
             <div class="grid-3">
                 <div class="stat-box cost"><div class="stat-title">গড় এড কস্ট</div><div class="stat-value" id="dash-avg-adcost">৳0</div></div>
                 <div class="stat-box"><div class="stat-title">সাকসেস রেট</div><div class="stat-value" id="dash-success-rate">0%</div></div>
-                <div class="stat-box profit" style="background:#d4edda"><div class="stat-title">নিট লাভ</div><div class="stat-value" id="dash-net">৳0</div></div>
+                <div class="stat-box profit" style="background:#d4edda; border-color:#c3e6cb"><div class="stat-title">নিট লাভ</div><div class="stat-value" id="dash-net">৳0</div></div>
             </div>
         </div>
 
@@ -178,21 +184,41 @@
             <h2 id="entryFormTitle">➕ নতুন অর্ডার</h2>
             <form id="orderForm">
                 <input type="hidden" id="editOrderId">
+                
                 <div class="grid-2">
-                    <div class="form-group"><label>কাস্টমার নাম</label><input type="text" id="custName" required></div>
-                    <div class="form-group"><label>মোবাইল</label><input type="tel" id="custPhone" required></div>
+                    <div class="form-group">
+                        <label>কাস্টমার নাম</label>
+                        <input type="text" id="custName" required>
+                        <span class="helper-text">কাস্টমারের পুরো নাম লিখুন</span>
+                    </div>
+                    <div class="form-group">
+                        <label>মোবাইল</label>
+                        <input type="tel" id="custPhone" required>
+                        <span class="helper-text">১১ সংখ্যার সঠিক নম্বর দিন</span>
+                    </div>
                 </div>
+                
                 <div class="grid-2">
                     <div class="form-group">
                         <label>প্রোডাক্ট</label>
                         <select id="entryProduct" required onchange="autoFillProductDetails()">
                             <option value="">-- সিলেক্ট --</option>
                         </select>
+                        <span class="helper-text">কোন প্রোডাক্টের অর্ডার?</span>
                     </div>
-                    <div class="form-group"><label>বিক্রয় মূল্য (৳)</label><input type="number" id="salePrice" required></div>
+                    <div class="form-group">
+                        <label>বিক্রয় মূল্য (৳)</label>
+                        <input type="number" id="salePrice" required>
+                        <span class="helper-text">কত টাকায় বিক্রি হয়েছে</span>
+                    </div>
                 </div>
+                
                 <div class="grid-2">
-                    <div class="form-group"><label>এড কস্ট (৳)</label><input type="number" id="adCost" readonly style="background:#f8e7f2"></div>
+                    <div class="form-group">
+                        <label>এড কস্ট (৳)</label>
+                        <input type="number" id="adCost" readonly style="background:#f8e7f2">
+                        <span class="helper-text">অটোমেটিক হিসাব হবে</span>
+                    </div>
                     <div class="form-group">
                         <label>ডেলিভারি</label>
                         <select id="deliveryArea">
@@ -200,8 +226,10 @@
                             <option value="100">আশেপাশে (১০০৳)</option>
                             <option value="120">বাহিরে (১২০৳)</option>
                         </select>
+                        <span class="helper-text">ডেলিভারি চার্জ কত?</span>
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label>স্ট্যাটাস</label>
                     <div class="radio-group">
@@ -209,14 +237,18 @@
                         <label class="radio-item"><input type="radio" name="orderStatus" value="Delivered" onchange="toggleReturnOptions()"> Delivered</label>
                         <label class="radio-item"><input type="radio" name="orderStatus" value="Returned" onchange="toggleReturnOptions()"> Returned</label>
                     </div>
+                    <span class="helper-text">বর্তমানে অর্ডারটি কোন অবস্থায় আছে?</span>
                 </div>
+                
                 <div class="form-group" id="returnPayerDiv" style="display:none;">
                     <label>রিটার্ন চার্জ কে দিবে?</label>
                     <div class="radio-group">
                         <label class="radio-item"><input type="radio" name="returnPayer" value="customer" checked> কাস্টমার</label>
                         <label class="radio-item"><input type="radio" name="returnPayer" value="me"> আমি (লসে যোগ হবে)</label>
                     </div>
+                    <span class="helper-text">কাস্টমার চার্জ না দিলে আপনার লসে যোগ হবে</span>
                 </div>
+                
                 <button type="submit" id="saveOrderBtn">সেভ করুন</button>
                 <button type="button" id="cancelEditBtn" onclick="cancelEditOrder()" style="display:none; background:#f3eaff; color:var(--plum); margin-top:8px; width:100%; border:none; padding:10px; border-radius:10px; font-weight:700;">বাতিল করুন</button>
             </form>
@@ -227,7 +259,7 @@
     <div id="tab-history" class="tab-content">
         <div class="card">
             <h2>📜 অর্ডার তালিকা</h2>
-            <div style="display:flex; gap:5px; margin-bottom:10px; overflow-x:auto; padding-bottom:5px;">
+            <div style="display:flex; gap:5px; margin-bottom:12px; overflow-x:auto; padding-bottom:5px;">
                 <button class="action-btn active-filter" onclick="setHistoryFilter('all', this)" style="background:var(--pink); color:white; border-color:var(--pink)">সব</button>
                 <button class="action-btn" onclick="setHistoryFilter('Processing', this)">প্রসেসিং</button>
                 <button class="action-btn" onclick="setHistoryFilter('Delivered', this)">ডেলিভারি</button>
@@ -251,10 +283,22 @@
             <h2 id="masterFormTitle">🏷️ নতুন প্রোডাক্ট</h2>
             <form id="masterForm">
                 <input type="hidden" id="editProductId">
-                <div class="form-group"><label>প্রোডাক্ট নাম</label><input type="text" id="mProdName" required></div>
+                <div class="form-group">
+                    <label>প্রোডাক্ট নাম</label>
+                    <input type="text" id="mProdName" required>
+                    <span class="helper-text">প্রোডাক্টের নাম লিখুন</span>
+                </div>
                 <div class="grid-2">
-                    <div class="form-group"><label>ক্রয়মূল্য (৳)</label><input type="number" id="mCostPrice" required></div>
-                    <div class="form-group"><label>মোট এড খরচ (৳)</label><input type="number" id="mTotalAdCost" required></div>
+                    <div class="form-group">
+                        <label>ক্রয়মূল্য (৳)</label>
+                        <input type="number" id="mCostPrice" required>
+                        <span class="helper-text">সাপ্লায়ারের দাম</span>
+                    </div>
+                    <div class="form-group">
+                        <label>মোট এড খরচ (৳)</label>
+                        <input type="number" id="mTotalAdCost" required>
+                        <span class="helper-text">মোট ক্যাম্পেইন খরচ</span>
+                    </div>
                 </div>
                 <button type="submit" id="saveProductBtn">সেভ করুন</button>
                 <button type="button" id="cancelProductBtn" onclick="cancelEditProduct()" style="display:none; background:#f3eaff; color:var(--plum); margin-top:8px; width:100%; border:none; padding:10px; border-radius:10px; font-weight:700;">বাতিল করুন</button>
@@ -289,10 +333,12 @@
         <div class="form-group">
             <label>লোগো পরিবর্তন করুন</label>
             <input type="file" id="logoUpload" accept="image/*">
+            <span class="helper-text">ছবিটি স্বয়ংক্রিয়ভাবে ছোট হয়ে সেভ হবে</span>
         </div>
         <div class="form-group">
             <label>প্রতিষ্ঠানের নাম</label>
             <input type="text" id="appNameInput" maxlength="50">
+            <span class="helper-text">অ্যাপের শিরোনামে এই নামটি দেখা যাবে</span>
         </div>
         <div class="settings-buttons">
             <button type="button" class="btn-remove" onclick="removeLogo()">লোগো মুছুন</button>
@@ -458,10 +504,16 @@
         const costPrice = Number($('mCostPrice').value), totalAdCost = Number($('mTotalAdCost').value);
         if (!editId && masterData.some(p => p.name === name)) return alert("প্রোডাক্টটি আগে থেকেই আছে।");
         const productData = { name, costPrice, totalAdCost };
-        if (db) {
-            if (editId) await db.collection('products').doc(editId).update(productData);
-            else await db.collection('products').add(productData);
-            cancelEditProduct();
+        try {
+            if (db) {
+                if (editId) await db.collection('products').doc(editId).update(productData);
+                else await db.collection('products').add(productData);
+                cancelEditProduct();
+            } else {
+                alert("ডাটাবেস কানেক্টেড নেই!");
+            }
+        } catch (err) {
+            alert("প্রোডাক্ট সেভ করতে সমস্যা হয়েছে: " + err.message);
         }
     });
 
@@ -520,27 +572,50 @@
     }
     window.toggleReturnOptions = toggleReturnOptions;
 
+    // === নতুন অর্ডার সেভ করার মেইন পার্ট (Try-Catch সহ) ===
     $('orderForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const editId = $('editOrderId').value;
-        const status = document.querySelector('input[name="orderStatus"]:checked').value;
-        let returnPayer = status === 'Returned' ? document.querySelector('input[name="returnPayer"]:checked').value : 'none';
-        const orderData = {
-            custName: $('custName').value.trim(), custPhone: $('custPhone').value.trim(),
-            productId: $('entryProduct').value, salePrice: Number($('salePrice').value),
-            deliveryArea: Number($('deliveryArea').value), status: status, returnPayer: returnPayer,
-            timestamp: editId ? (dailyEntries.find(o => o.id === editId)?.timestamp || Date.now()) : Date.now()
-        };
-        if (db) {
-            if (editId) await db.collection('orders').doc(editId).update(orderData);
-            else await db.collection('orders').add(orderData);
-            cancelEditOrder(); alert("সেভ হয়েছে!");
+        
+        try {
+            if (!db) throw new Error("Firebase কানেক্টেড নেই। ইন্টারনেট চেক করুন।");
+
+            const editId = $('editOrderId').value;
+            const status = document.querySelector('input[name="orderStatus"]:checked').value;
+            let returnPayer = status === 'Returned' ? document.querySelector('input[name="returnPayer"]:checked').value : 'none';
+            
+            const orderData = {
+                custName: $('custName').value.trim(), 
+                custPhone: $('custPhone').value.trim(),
+                productId: $('entryProduct').value, 
+                salePrice: Number($('salePrice').value),
+                deliveryArea: Number($('deliveryArea').value), 
+                status: status, 
+                returnPayer: returnPayer,
+                timestamp: editId ? (dailyEntries.find(o => o.id === editId)?.timestamp || Date.now()) : Date.now()
+            };
+
+            // চেক করা হচ্ছে সব ডেটা ঠিকঠাক আছে কিনা
+            if (!orderData.custName || !orderData.custPhone || !orderData.productId || !orderData.salePrice) {
+                throw new Error("অনুগ্রহ করে সব ঘর সঠিকভাবে পূরণ করুন।");
+            }
+
+            if (editId) {
+                await db.collection('orders').doc(editId).update(orderData);
+            } else {
+                await db.collection('orders').add(orderData);
+            }
+            
+            cancelEditOrder(); 
+            alert("✅ অর্ডার সফলভাবে সেভ হয়েছে!");
+            
+        } catch (error) {
+            console.error("Order Save Error:", error);
+            alert("❌ অর্ডার সেভ হয়নি!\n\nকারণ: " + error.message);
         }
     });
 
     function editOrder(id) {
         const o = dailyEntries.find(x => x.id === id); if (!o) return;
-        // ট্যাব চেঞ্জ করে হোমে নিয়ে আসা
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         $('tab-home').classList.add('active');
@@ -649,4 +724,4 @@
     window.updateDashboardView = updateDashboardView;
 </script>
 </body>
-    </html>
+                        </html>
