@@ -108,7 +108,7 @@
         .badge:hover{transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.15);}
         .badge-delivered{background: var(--green);} 
         .badge-returned{background: var(--red);} 
-        .badge-returned-loss{background: var(--deep-red);} /* নতুন গাঢ় লাল কালার */
+        .badge-returned-loss{background: var(--deep-red);}
         .badge-processing{background: var(--orange);}
         
         /* Action Buttons */
@@ -749,7 +749,9 @@
         document.querySelector(`input[name="orderStatus"][value="${o.status}"]`).checked = true;
         toggleReturnOptions();
         if (o.status === 'Returned') document.querySelector(`input[name="returnPayer"][value="${o.returnPayer}"]`).checked = true;
+        
         autoFillProductDetails();
+        
         $('entryFormTitle').innerHTML = '<span class="pulse-icon">✏️</span> অর্ডার এডিট'; 
         $('saveOrderBtn').innerText = 'আপডেট করুন';
         $('cancelEditBtn').style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -792,13 +794,22 @@
             if (search && !o.custName.toLowerCase().includes(search) && !o.custPhone.includes(search)) return;
 
             let profitText = '-';
-            if (o.status === 'Delivered') profitText = `<span style="color:var(--green);font-weight:bold;">৳${(o.salePrice - (costPrice + avgAdCost)).toFixed(0)}</span>`;
+            
+            // === হিসাবের স্বচ্ছতা ===
+            // Delivered: শুধু বিক্রয়মূল্য - (ক্রয়মূল্য + গড় এড কস্ট)
+            if (o.status === 'Delivered') {
+                const profit = o.salePrice - (costPrice + avgAdCost);
+                profitText = `<span style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:bold;">৳${profit.toFixed(0)}</span>`;
+            } 
+            // Returned: গড় এড কস্ট + (যদি আমি চার্জ দেই) ডেলিভারি চার্জ
             else if (o.status === 'Returned') {
-                let loss = avgAdCost + (o.returnPayer === 'me' ? o.deliveryArea : 0);
+                let loss = avgAdCost;
+                if (o.returnPayer === 'me') {
+                    loss += Number(o.deliveryArea); // শুধুমাত্র রিটার্ন লসে ডেলিভারি চার্জ যোগ হবে
+                }
                 profitText = `<span style="color:var(--red);font-weight:bold;">-৳${loss.toFixed(0)}</span>`;
             }
 
-            // স্ট্যাটাস অনুযায়ী কালার ও লেখা পরিবর্তন
             let badgeClass = 'badge-processing';
             let badgeText = o.status;
             
@@ -830,7 +841,6 @@
     function updateDashboardView() {
         currentDashProduct = $('dashProductSelect').value;
         
-        // Filter entries
         let filtered = currentDashProduct === 'all' ? dailyEntries : dailyEntries.filter(e => e.productId === currentDashProduct);
 
         let totalOrders = filtered.length;
@@ -846,7 +856,6 @@
         filtered.forEach(o => {
             const p = masterData.find(x => x.id === o.productId); if (!p) return;
             
-            // Calculate Avg Ad Cost for this specific product
             const productTotalOrders = dailyEntries.filter(e => e.productId === o.productId).length || 1;
             const avgAdCost = p.totalAdCost / productTotalOrders;
             
@@ -859,14 +868,14 @@
                 deliveredCount++;
                 deliveredAmt += o.salePrice;
                 totalSales += o.salePrice;
-                totalProfit += (o.salePrice - (p.costPrice + avgAdCost));
+                totalProfit += (o.salePrice - (p.costPrice + avgAdCost)); // এখানে ডেলিভারি চার্জ নেই
             } else if (o.status === 'Returned') {
                 returnedCount++;
                 returnedAmt += o.salePrice;
                 let loss = avgAdCost;
                 if (o.returnPayer === 'me') {
-                    loss += o.deliveryArea;
-                    totalReturnCostPaid += o.deliveryArea;
+                    loss += Number(o.deliveryArea); // শুধুমাত্র এখানে ডেলিভারি চার্জ লসে যোগ হবে
+                    totalReturnCostPaid += Number(o.deliveryArea);
                 }
                 totalLoss += loss;
             }
@@ -874,23 +883,14 @@
 
         const netProfit = totalProfit - totalLoss;
         
-        // 1. Profit Margin: (Net Profit / Total Investment) * 100
-        // Total Investment = Total Ad Cost + Total Return Cost Paid by Me
         const totalInvestment = totalAdCost + totalReturnCostPaid;
         const profitMargin = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
-        
-        // 2. ROAS: Total Sales / Total Ad Cost
         const roas = totalAdCost > 0 ? (totalSales / totalAdCost) : 0;
-
-        // 3. Success Rate: Delivered / Total Orders
         const successRate = totalOrders > 0 ? ((deliveredCount / totalOrders) * 100) : 0;
         
-        // Update UI
         $('dash-sales').innerText = '৳' + totalSales.toFixed(0);
         $('dash-sales-sub').innerText = deliveredCount + ' টি ডেলিভারি';
-        
         $('dash-net').innerText = '৳' + netProfit.toFixed(0);
-        
         $('dash-margin').innerText = profitMargin.toFixed(1) + '%';
         
         $('dash-total-adcost').innerText = '৳' + totalAdCost.toFixed(0);
