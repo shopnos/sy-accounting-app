@@ -12,7 +12,7 @@
         :root{
             --plum:#4b1f62; --plum2:#713b87; --pink:#e84f9a; --pink2:#ff83b9;
             --rose:#fff0f6; --lilac:#f3eaff; --ink:#392344; --muted:#806b89;
-            --line:#f1dce9; --paper:#fffafc; --green:#27a47b; --red:#e34e81; --orange:#e7a43c; --blue:#3498db;
+            --line:#f1dce9; --paper:#fffafc; --green:#27a47b; --red:#e34e81; --deep-red:#b71c1c; --orange:#e7a43c; --blue:#3498db;
         }
         
         body{
@@ -106,7 +106,10 @@
         /* Interactive Badges */
         .badge{border-radius: 20px; padding: 5px 10px; font-size: 0.7rem; color: white; font-weight: 700; white-space: nowrap; cursor: pointer; transition: 0.2s; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
         .badge:hover{transform: scale(1.05); box-shadow: 0 4px 8px rgba(0,0,0,0.15);}
-        .badge-delivered{background: var(--green);} .badge-returned{background: var(--red);} .badge-processing{background: var(--orange);}
+        .badge-delivered{background: var(--green);} 
+        .badge-returned{background: var(--red);} 
+        .badge-returned-loss{background: var(--deep-red);} /* নতুন গাঢ় লাল কালার */
+        .badge-processing{background: var(--orange);}
         
         /* Action Buttons */
         .action-btn{background: #fffafd; border: 1px solid #f4dce9; color: var(--plum); border-radius: 8px; padding: 5px 8px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; width: auto;}
@@ -795,11 +798,24 @@
                 profitText = `<span style="color:var(--red);font-weight:bold;">-৳${loss.toFixed(0)}</span>`;
             }
 
-            const badge = o.status === 'Delivered' ? 'badge-delivered' : (o.status === 'Returned' ? 'badge-returned' : 'badge-processing');
+            // স্ট্যাটাস অনুযায়ী কালার ও লেখা পরিবর্তন
+            let badgeClass = 'badge-processing';
+            let badgeText = o.status;
             
+            if (o.status === 'Delivered') {
+                badgeClass = 'badge-delivered';
+            } else if (o.status === 'Returned') {
+                if (o.returnPayer === 'me') {
+                    badgeClass = 'badge-returned-loss';
+                    badgeText = 'Returned (Loss)';
+                } else {
+                    badgeClass = 'badge-returned';
+                }
+            }
+
             tbody.innerHTML += `<tr>
                 <td>${o.custName}</td><td>${pName}</td><td>${profitText}</td>
-                <td><span class="badge ${badge}" onclick="openQuickStatusModal('${o.id}', '${o.status}', '${o.returnPayer || ''}')" title="স্ট্যাটাস পরিবর্তন করতে ক্লিক করুন">${o.status}</span></td>
+                <td><span class="badge ${badgeClass}" onclick="openQuickStatusModal('${o.id}', '${o.status}', '${o.returnPayer || ''}')" title="স্ট্যাটাস পরিবর্তন করতে ক্লিক করুন">${badgeText}</span></td>
                 <td>
                     <button class="action-btn" onclick="editOrder('${o.id}')" title="বিস্তারিত এডিট">✏️</button>
                     <button class="action-btn delete" onclick="deleteOrder('${o.id}')" title="ডিলিট">❌</button>
